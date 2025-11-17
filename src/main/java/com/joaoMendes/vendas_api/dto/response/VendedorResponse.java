@@ -1,4 +1,5 @@
 package com.joaoMendes.vendas_api.dto.response;
 
-public class VendedorResponse {
+public record VendedorResponse(Long id,
+                               String nome) {
 }

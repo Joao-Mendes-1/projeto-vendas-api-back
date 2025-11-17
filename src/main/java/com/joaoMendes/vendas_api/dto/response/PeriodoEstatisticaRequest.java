@@ -1,4 +1,12 @@
 package com.joaoMendes.vendas_api.dto.response;
 
-public class PeriodoEstatisticaRequest {
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public record PeriodoEstatisticaRequest(Long idVendedor,
+                                        String nomeVendedor,
+                                        BigDecimal totalVendido,
+                                        BigDecimal mediaDiaria,
+                                        LocalDate dataInicio,
+                                        LocalDate dataFim) {
 }

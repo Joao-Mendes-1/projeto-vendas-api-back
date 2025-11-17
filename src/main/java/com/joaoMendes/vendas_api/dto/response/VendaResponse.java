@@ -1,4 +1,11 @@
 package com.joaoMendes.vendas_api.dto.response;
 
-public class VendaResponse {
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+public record VendaResponse(Long id,
+                            LocalDateTime dataVenda,
+                            BigDecimal valor,
+                            Long idVendedor,
+                            String nomeVendedor) {
 }

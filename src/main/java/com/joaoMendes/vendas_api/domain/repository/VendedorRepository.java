@@ -1,4 +1,13 @@
 package com.joaoMendes.vendas_api.domain.repository;
 
-public class VendedorRepository {
+import com.joaoMendes.vendas_api.domain.entities.Vendedor;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface VendedorRepository extends JpaRepository<Vendedor, Long> {
+
+    Optional<Vendedor> findByNome(String nome);
 }
