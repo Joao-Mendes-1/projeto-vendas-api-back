@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CoolRequestSetting">
+    <option name="serializePaths">
+      <list>
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/8f6d9f5961ff4313b34ca07ae21929a8" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/ecc3b2c183174c6c88fe3c322e2fa8d6" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/559ed7173a344cefa66dbcde14d8e6b0" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/58057618e5864e14be258dab6e497947" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/aae803cd27a641428d60d4e3bf768297" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/091a14f8f2854674ac075fce6b4d5c2b" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/0cf98acce521440c87d2c486796fc57e" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/a6016bf181fd42499bed2b45643c2278" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/b953de3bf7824024b9440d4b2c6b2c02" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/74f4653a7c654799b6f681ad1bb1ddf9" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/d11e859c74274d889f5fdfc543b9f8a1" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/ac93c3da7b484cef87383aa82cd9afd1" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/40e5464dd7784172a6c6573dcdc49fe7" />
+        <option value="$PROJECT_DIR$/../.config/.cool-request/request/serialize/c919116cbe54415aa0a34be55e4395b4" />
+      </list>
+    </option>
     <option name="projectCachePath" value="project-fa641917-5ac6-4e76-be61-21858f4fce5d" />
   </component>
 </project>

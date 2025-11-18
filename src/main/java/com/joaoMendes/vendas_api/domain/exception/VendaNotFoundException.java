@@ -1,8 +1,8 @@
 package com.joaoMendes.vendas_api.domain.exception;
 
-public class VendedorNotFoundException extends RuntimeException {
+public class VendaNotFoundException extends RuntimeException {
 
-    public VendedorNotFoundException(Long id) {
+    public VendaNotFoundException(Long id) {
         super("Vendedor não encontrado com ID: " + id);
     }
 }

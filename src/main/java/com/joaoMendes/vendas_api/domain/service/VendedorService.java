@@ -28,9 +28,8 @@ public class VendedorService {
         }
 
         Vendedor vendedor = mapper.toEntity(request);
-        Vendedor saved = repository.save(vendedor);
 
-        return mapper.toResponse(saved);
+        return mapper.toResponse(repository.save(vendedor));
     }
 
     public void delete(Long id){

@@ -1,5 +1,6 @@
 package com.joaoMendes.vendas_api.exceptionhandler;
 
+import com.joaoMendes.vendas_api.domain.exception.VendaNotFoundException;
 import com.joaoMendes.vendas_api.domain.exception.VendedorNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -57,7 +58,20 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
         ApiErrorResponse body = new ApiErrorResponse(
                 ex.getMessage(),
-                List.of(HttpStatus.NOT_FOUND.name()),// sempre ONE error
+                List.of(HttpStatus.NOT_FOUND.name()),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(body);
+    }
+    @ExceptionHandler(VendaNotFoundException.class)
+    public ResponseEntity<Object> handleVendaNotFound(VendaNotFoundException ex) {
+
+        ApiErrorResponse body = new ApiErrorResponse(
+                ex.getMessage(),
+                List.of(HttpStatus.NOT_FOUND.name()),
                 LocalDateTime.now()
         );
 
