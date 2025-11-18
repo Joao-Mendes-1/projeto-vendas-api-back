@@ -1,9 +1,11 @@
 package com.joaoMendes.vendas_api.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -11,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class VendaRequest {
-
+    @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDateTime dataVenda;
 
     @NotNull(message = "O valor da venda é obrigatório.")

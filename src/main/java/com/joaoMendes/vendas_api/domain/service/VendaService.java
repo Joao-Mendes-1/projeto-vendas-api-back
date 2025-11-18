@@ -8,7 +8,7 @@ import com.joaoMendes.vendas_api.domain.repository.VendaRepository;
 import com.joaoMendes.vendas_api.domain.repository.VendedorRepository;
 import com.joaoMendes.vendas_api.dto.request.MediaPorPeriodoRequest;
 import com.joaoMendes.vendas_api.dto.request.VendaRequest;
-import com.joaoMendes.vendas_api.dto.response.PeriodoEstatisticaResponse;
+import com.joaoMendes.vendas_api.dto.response.MediaPorPeriodoResponse;
 import com.joaoMendes.vendas_api.dto.response.VendaResponse;
 import com.joaoMendes.vendas_api.mapper.VendaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,12 +67,12 @@ public class VendaService {
         return mapper.toResponse(vendaRepository.save(vendaExistente));
     }
 
-    public PeriodoEstatisticaResponse calcularEstatistica(Long idVendedor, MediaPorPeriodoRequest filtro){
+    public MediaPorPeriodoResponse calcularEstatistica(Long idVendedor, MediaPorPeriodoRequest periodoRequest){
         Vendedor vendedor = vendedorRepository.findById(idVendedor)
                 .orElseThrow(() -> new VendedorNotFoundException(idVendedor));
 
-        LocalDate inicio = filtro.getDataInicio();
-        LocalDate fim = filtro.getDataFim();
+        LocalDate inicio = periodoRequest.getDataInicio();
+        LocalDate fim = periodoRequest.getDataFim();
 
         List<Venda> vendas = vendaRepository.findByVendedorAndDataVendaBetween(
                 vendedor,
@@ -87,7 +87,7 @@ public class VendaService {
         long dias = ChronoUnit.DAYS.between(inicio, fim) + 1;
         BigDecimal mediaDiaria = dias > 0 ? totalVendido.divide(BigDecimal.valueOf(dias), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
-        return new PeriodoEstatisticaResponse(
+        return new MediaPorPeriodoResponse(
                 vendedor.getId(),
                 vendedor.getNome(),
                 totalVendido,

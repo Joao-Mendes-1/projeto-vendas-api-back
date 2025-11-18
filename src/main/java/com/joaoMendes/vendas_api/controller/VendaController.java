@@ -1,7 +1,9 @@
 package com.joaoMendes.vendas_api.controller;
 
 import com.joaoMendes.vendas_api.domain.service.VendaService;
+import com.joaoMendes.vendas_api.dto.request.MediaPorPeriodoRequest;
 import com.joaoMendes.vendas_api.dto.request.VendaRequest;
+import com.joaoMendes.vendas_api.dto.response.MediaPorPeriodoResponse;
 import com.joaoMendes.vendas_api.dto.response.VendaResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,5 +48,13 @@ public class VendaController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/{idVendedor}/estatistica")
+    public ResponseEntity<MediaPorPeriodoResponse> calcularEstatistica(
+            @PathVariable Long idVendedor,
+            @Valid @RequestBody MediaPorPeriodoRequest filtro) {
+
+        MediaPorPeriodoResponse response = service.calcularEstatistica(idVendedor, filtro);
+        return ResponseEntity.ok(response);
     }
 }
