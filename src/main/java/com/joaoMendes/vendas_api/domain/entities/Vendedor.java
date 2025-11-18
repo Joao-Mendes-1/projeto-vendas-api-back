@@ -19,4 +19,8 @@ public class Vendedor implements Serializable {
     private Long id;
 
     private String nome;
+
+    public void updateFrom(Vendedor vendedor) {
+        this.nome = vendedor.getNome();
+    }
 }

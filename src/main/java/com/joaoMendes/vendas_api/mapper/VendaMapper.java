@@ -4,7 +4,6 @@ import com.joaoMendes.vendas_api.domain.entities.Venda;
 import com.joaoMendes.vendas_api.domain.entities.Vendedor;
 import com.joaoMendes.vendas_api.dto.request.VendaRequest;
 import com.joaoMendes.vendas_api.dto.response.VendaResponse;
-import com.joaoMendes.vendas_api.dto.response.VendedorResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

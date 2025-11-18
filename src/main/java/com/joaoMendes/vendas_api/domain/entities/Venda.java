@@ -25,7 +25,4 @@ public class Venda implements Serializable {
     @ManyToOne
     @JoinColumn(name = "id_vendedor")
     private Vendedor vendedor;
-
-
-
 }
