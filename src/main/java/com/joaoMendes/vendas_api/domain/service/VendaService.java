@@ -29,25 +29,41 @@ public class VendaService {
     @Autowired
     private VendaMapper mapper;
 
+    private Venda findVendaOrThrow(Long id) {
+        return vendaRepository.findById(id)
+                .orElseThrow(() -> new VendaNotFoundException(id));
+    }
+
+    private Vendedor findVendedorOrThrow(Long id) {
+        return vendedorRepository.findById(id)
+                .orElseThrow(() -> new VendedorNotFoundException(id));
+    }
+
     public VendaResponse create(VendaRequest request){
-        Vendedor vendedor = vendedorRepository.findById(request.getIdVendedor())
-                .orElseThrow(() -> new VendedorNotFoundException(request.getIdVendedor()));
+        Vendedor vendedor = findVendedorOrThrow(request.getIdVendedor());
 
         Venda venda = mapper.toEntity(request, vendedor);
         return mapper.toResponse(vendaRepository.save(venda));
     }
 
     public void delete(Long id){
-        Venda venda = vendaRepository.findById(id)
-                .orElseThrow(() -> new VendaNotFoundException(id));
+        Venda venda = findVendaOrThrow(id);
 
         vendaRepository.delete(venda);
     }
 
     public VendaResponse getById(Long id){
-        Venda venda = vendaRepository.findById(id)
-                .orElseThrow(() -> new VendaNotFoundException(id));
+        Venda venda = findVendaOrThrow(id);
         return mapper.toResponse(venda);
+    }
+
+    public List<VendaResponse> getVendasPorVendedorById(Long id){
+        Vendedor vendedor = findVendedorOrThrow(id);
+        List<Venda> vendas = vendaRepository.findByVendedor(vendedor);
+        if (vendas.isEmpty()) throw new VendaNotFoundException("Este vendedor não possui vendas");
+        return vendas.stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     public List<VendaResponse> getAll(){
@@ -55,29 +71,29 @@ public class VendaService {
     }
 
     public VendaResponse update(Long id, VendaRequest request){
-        vendaRepository.findById(id)
-                .orElseThrow(() -> new VendaNotFoundException(id));
-        Venda vendaExistente;
+        Venda vendaExistente = findVendaOrThrow(id);
 
-        Vendedor vendedor = vendedorRepository.findById(id)
-                .orElseThrow(() -> new VendedorNotFoundException(request.getIdVendedor()));
+        Vendedor vendedor = findVendedorOrThrow(request.getIdVendedor());
 
-        vendaExistente = mapper.toEntity(request, vendedor);
+        vendaExistente.updateFrom(mapper.toEntity(request, vendedor)) ;
 
         return mapper.toResponse(vendaRepository.save(vendaExistente));
     }
 
-    public MediaPorPeriodoResponse calcularEstatistica(Long idVendedor, MediaPorPeriodoRequest periodoRequest){
-        Vendedor vendedor = vendedorRepository.findById(idVendedor)
-                .orElseThrow(() -> new VendedorNotFoundException(idVendedor));
+    public MediaPorPeriodoResponse calcularMediaDiaria(Long idVendedor, MediaPorPeriodoRequest periodoRequest){
+
+        Vendedor vendedor = findVendedorOrThrow(idVendedor);
 
         LocalDate inicio = periodoRequest.getDataInicio();
         LocalDate fim = periodoRequest.getDataFim();
+        if (fim.isBefore(inicio)) {
+            throw new IllegalArgumentException("Data fim não pode ser antes da data início.");
+        }
 
         List<Venda> vendas = vendaRepository.findByVendedorAndDataVendaBetween(
                 vendedor,
-                inicio.atStartOfDay(),
-                fim.atTime(23, 59, 59)
+                inicio,
+                fim
         );
 
         BigDecimal totalVendido = vendas.stream()
@@ -93,7 +109,8 @@ public class VendaService {
                 totalVendido,
                 mediaDiaria,
                 inicio,
-                fim
+                fim,
+                dias
         );
     }
 

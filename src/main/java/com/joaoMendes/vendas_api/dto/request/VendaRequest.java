@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 public class VendaRequest {
     @JsonFormat(pattern = "dd/MM/yyyy")
-    private LocalDateTime dataVenda;
+    private LocalDate dataVenda;
 
     @NotNull(message = "O valor da venda é obrigatório.")
     @DecimalMin(value = "0.0", inclusive = false, message = "O valor deve ser maior que zero.")

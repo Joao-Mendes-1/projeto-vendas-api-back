@@ -16,46 +16,48 @@ import java.util.Optional;
 public class VendedorService {
 
     @Autowired
-    private VendedorRepository repository;
+    private VendedorRepository vendedorRepository;
 
     @Autowired
-    private VendedorMapper mapper;
+    private VendedorMapper vendedorMapper;
+
+    private Vendedor findVendedorOrThrow(Long id) {
+        return vendedorRepository.findById(id)
+                .orElseThrow(() -> new VendedorNotFoundException(id));
+    }
 
     public VendedorResponse create(VendedorRequest request){
-        Optional<Vendedor> existente = repository.findByNome(request.getNome());
+        Optional<Vendedor> existente = vendedorRepository.findByNome(request.getNome());
         if (existente.isPresent()) {
             throw new IllegalArgumentException("Já existe um vendedor com esse nome");
         }
 
-        Vendedor vendedor = mapper.toEntity(request);
+        Vendedor vendedor = vendedorMapper.toEntity(request);
 
-        return mapper.toResponse(repository.save(vendedor));
+        return vendedorMapper.toResponse(vendedorRepository.save(vendedor));
     }
 
     public void delete(Long id){
-        Vendedor vendedor = repository.findById(id)
-                .orElseThrow(() -> new VendedorNotFoundException(id));
+        Vendedor vendedor = findVendedorOrThrow(id);
 
-        repository.delete(vendedor);
+        vendedorRepository.delete(vendedor);
     }
 
     public VendedorResponse getById(Long id){
-        Vendedor vendedor = repository.findById(id)
-                .orElseThrow(() -> new VendedorNotFoundException(id));
+        Vendedor vendedor = findVendedorOrThrow(id);
 
-        return mapper.toResponse(vendedor);
+        return vendedorMapper.toResponse(vendedor);
     }
 
     public List<VendedorResponse> getAll(){
-        return mapper.toResponseList(repository.findAll());
+        return vendedorMapper.toResponseList(vendedorRepository.findAll());
     }
 
     public VendedorResponse update(Long id, VendedorRequest request){
-        Vendedor vendedorExistente = repository.findById(id)
-                .orElseThrow(() -> new VendedorNotFoundException(id));
-        Vendedor atualizar = mapper.toEntity(request);
-        vendedorExistente.updateFrom(atualizar);
+        Vendedor vendedorExistente = findVendedorOrThrow(id);
 
-        return mapper.toResponse(repository.save(vendedorExistente));
+        vendedorExistente.updateFrom(vendedorMapper.toEntity(request)) ;
+
+        return vendedorMapper.toResponse(vendedorRepository.save(vendedorExistente));
     }
 }

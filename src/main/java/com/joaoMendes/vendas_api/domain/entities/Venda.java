@@ -22,10 +22,17 @@ public class Venda implements Serializable {
     private Long id;
 
     @JsonFormat(pattern = "dd/MM/yyyy")
-    private LocalDateTime dataVenda;
+    private LocalDate dataVenda;
     private BigDecimal valor;
 
     @ManyToOne
     @JoinColumn(name = "id_vendedor")
     private Vendedor vendedor;
+
+    public void updateFrom(Venda venda) {
+        this.dataVenda = venda.getDataVenda();
+        this.valor = venda.getValor();
+        this.vendedor = venda.getVendedor();
+    }
+
 }

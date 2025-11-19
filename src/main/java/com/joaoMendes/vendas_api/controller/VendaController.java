@@ -32,6 +32,12 @@ public class VendaController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/vendedor/{id}")
+    public ResponseEntity<List<VendaResponse>> getVendasPorVendedorById(@PathVariable Long id) {
+        List<VendaResponse> response = service.getVendasPorVendedorById(id);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<VendaResponse> getById(@PathVariable Long id) {
         VendaResponse response = service.getById(id);
@@ -54,7 +60,7 @@ public class VendaController {
             @PathVariable Long idVendedor,
             @Valid @RequestBody MediaPorPeriodoRequest filtro) {
 
-        MediaPorPeriodoResponse response = service.calcularEstatistica(idVendedor, filtro);
+        MediaPorPeriodoResponse response = service.calcularMediaDiaria(idVendedor, filtro);
         return ResponseEntity.ok(response);
     }
 }
