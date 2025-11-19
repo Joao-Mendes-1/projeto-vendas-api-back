@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+import static com.joaoMendes.vendas_api.utils.StringUtils.*;
+
 @Service
 public class VendedorService {
 
@@ -21,16 +23,23 @@ public class VendedorService {
     @Autowired
     private VendedorMapper vendedorMapper;
 
+    private void validateNomeDuplicado(String nome, Long idAtual) {
+        String nomeNormalizado = normalizeString(nome);
+        Optional<Vendedor> existente = vendedorRepository.findByNomeIgnoreCase(nomeNormalizado);
+
+        if (existente.isPresent() && !existente.get().getId().equals(idAtual)) {
+            throw new IllegalArgumentException("Já existe um vendedor com esse nome");
+        }
+    }
+
     private Vendedor findVendedorOrThrow(Long id) {
         return vendedorRepository.findById(id)
                 .orElseThrow(() -> new VendedorNotFoundException(id));
     }
 
     public VendedorResponse create(VendedorRequest request){
-        Optional<Vendedor> existente = vendedorRepository.findByNome(request.getNome());
-        if (existente.isPresent()) {
-            throw new IllegalArgumentException("Já existe um vendedor com esse nome");
-        }
+        request.setNome(cleanStringForSave(request.getNome()));
+        validateNomeDuplicado(request.getNome(), null);
 
         Vendedor vendedor = vendedorMapper.toEntity(request);
 
@@ -54,6 +63,8 @@ public class VendedorService {
     }
 
     public VendedorResponse update(Long id, VendedorRequest request){
+        request.setNome(cleanStringForSave(request.getNome()));
+        validateNomeDuplicado(request.getNome(), id);
         Vendedor vendedorExistente = findVendedorOrThrow(id);
 
         vendedorExistente.updateFrom(vendedorMapper.toEntity(request)) ;

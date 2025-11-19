@@ -2,6 +2,7 @@ package com.joaoMendes.vendas_api.domain.service;
 
 import com.joaoMendes.vendas_api.domain.entities.Venda;
 import com.joaoMendes.vendas_api.domain.entities.Vendedor;
+import com.joaoMendes.vendas_api.domain.exception.PeriodoInvalidoException;
 import com.joaoMendes.vendas_api.domain.exception.VendaNotFoundException;
 import com.joaoMendes.vendas_api.domain.exception.VendedorNotFoundException;
 import com.joaoMendes.vendas_api.domain.repository.VendaRepository;
@@ -60,7 +61,6 @@ public class VendaService {
     public List<VendaResponse> getVendasPorVendedorById(Long id){
         Vendedor vendedor = findVendedorOrThrow(id);
         List<Venda> vendas = vendaRepository.findByVendedor(vendedor);
-        if (vendas.isEmpty()) throw new VendaNotFoundException("Este vendedor não possui vendas");
         return vendas.stream()
                 .map(mapper::toResponse)
                 .toList();
@@ -87,7 +87,7 @@ public class VendaService {
         LocalDate inicio = periodoRequest.getDataInicio();
         LocalDate fim = periodoRequest.getDataFim();
         if (fim.isBefore(inicio)) {
-            throw new IllegalArgumentException("Data fim não pode ser antes da data início.");
+            throw new PeriodoInvalidoException(inicio,fim);
         }
 
         List<Venda> vendas = vendaRepository.findByVendedorAndDataVendaBetween(

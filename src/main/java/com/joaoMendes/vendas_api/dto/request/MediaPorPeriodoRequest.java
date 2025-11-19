@@ -1,8 +1,9 @@
 package com.joaoMendes.vendas_api.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonMerge;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -12,11 +13,14 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class MediaPorPeriodoRequest {
+
+    @NotNull(message = "A data de inicio é obrigatória")
     @JsonFormat(pattern = "dd/MM/yyyy")
-    @NotNull(message = "A data de inicio é obrigatórioa")
     private LocalDate dataInicio;
 
+
+    @PastOrPresent(message = "A data fim não pode ser no futuro.")
     @JsonFormat(pattern = "dd/MM/yyyy")
-    @NotNull(message = "A data de fim é obrigatórioa")
+    @NotNull(message = "A data de fim é obrigatória")
     private LocalDate dataFim;
 }

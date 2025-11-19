@@ -1,5 +1,6 @@
 package com.joaoMendes.vendas_api.exceptionhandler;
 
+import com.joaoMendes.vendas_api.domain.exception.PeriodoInvalidoException;
 import com.joaoMendes.vendas_api.domain.exception.VendaNotFoundException;
 import com.joaoMendes.vendas_api.domain.exception.VendedorNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -80,6 +81,20 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(body);
     }
 
+    @ExceptionHandler(PeriodoInvalidoException.class)
+    public ResponseEntity<Object> handlePeriodoInvalido(PeriodoInvalidoException ex) {
+
+        ApiErrorResponse body = new ApiErrorResponse(
+                ex.getMessage(),
+                List.of(HttpStatus.BAD_REQUEST.name()),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(body);
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
 
@@ -89,6 +104,6 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 LocalDateTime.now()
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 }
