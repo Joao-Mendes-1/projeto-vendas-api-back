@@ -81,7 +81,6 @@ public class VendaService {
     }
 
     public MediaPorPeriodoResponse calcularMediaDiaria(Long idVendedor, MediaPorPeriodoRequest periodoRequest){
-
         Vendedor vendedor = findVendedorOrThrow(idVendedor);
 
         LocalDate inicio = periodoRequest.getDataInicio();

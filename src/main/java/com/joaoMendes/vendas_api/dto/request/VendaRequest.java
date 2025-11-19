@@ -14,9 +14,9 @@ import java.time.LocalDateTime;
 @Setter
 public class VendaRequest {
 
-    @PastOrPresent(message = "A data é obrigatória.")
+    @PastOrPresent(message = "A data não pode ser no futuro.")
     @JsonFormat(pattern = "dd/MM/yyyy")
-    @NotNull(message = "A data de inicio é obrigatória")
+    @NotNull(message = "A data é obrigatória")
     private LocalDate dataVenda;
 
     @NotNull(message = "O valor da venda é obrigatório.")
