@@ -13,6 +13,7 @@ public record MediaPorPeriodoResponse(Long idVendedor,
                                       LocalDate dataInicio,
                                       @JsonFormat(pattern = "dd/MM/yyyy")
                                       LocalDate dataFim,
-                                      Long dias) {
+                                      Long dias,
+                                      Long quantidadeVendas) {
 }
 

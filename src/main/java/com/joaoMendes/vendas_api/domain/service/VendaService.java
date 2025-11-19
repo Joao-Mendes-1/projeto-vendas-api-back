@@ -99,6 +99,8 @@ public class VendaService {
         BigDecimal totalVendido = vendas.stream()
                 .map(Venda::getValor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        long quantidadeVendas = vendas.stream().count();
+
 
         long dias = ChronoUnit.DAYS.between(inicio, fim) + 1;
         BigDecimal mediaDiaria = dias > 0 ? totalVendido.divide(BigDecimal.valueOf(dias), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
@@ -110,7 +112,9 @@ public class VendaService {
                 mediaDiaria,
                 inicio,
                 fim,
-                dias
+                dias,
+                quantidadeVendas
+
         );
     }
 
