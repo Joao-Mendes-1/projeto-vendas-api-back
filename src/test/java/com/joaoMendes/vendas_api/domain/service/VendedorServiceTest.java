@@ -35,7 +35,7 @@ class VendedorServiceTest {
     @InjectMocks
     private VendedorService vendedorService;
 
-    private final String NOME = "Ademar";
+    private final String NOME = "nome";
     private final String nomeNormalizado = StringUtils.normalizeString(NOME);
     private VendedorRequest requestValido;
     private Vendedor vendedorEntity;

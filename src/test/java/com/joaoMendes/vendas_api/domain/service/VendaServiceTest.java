@@ -12,13 +12,13 @@ import com.joaoMendes.vendas_api.dto.request.VendaRequest;
 import com.joaoMendes.vendas_api.dto.response.MediaPorPeriodoResponse;
 import com.joaoMendes.vendas_api.dto.response.VendaResponse;
 import com.joaoMendes.vendas_api.mapper.VendaMapper;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -45,7 +45,6 @@ class VendaServiceTest {
 
     private Vendedor vendedor;
     private Venda vendaEntity;
-    private Venda vendaAtualizada;
     private Venda vendaSalva;
     private VendaResponse vendaResponse;
 
@@ -55,10 +54,13 @@ class VendaServiceTest {
     private final Long ID_VENDEDOR = 10L;
     private final BigDecimal VALOR = new BigDecimal("500.00");
 
+    private static final LocalDate DATA_INICIO_VALIDO = LocalDate.of(2025, 11, 10);
+    private static final LocalDate DATA_FIM_VALIDO = LocalDate.of(2025, 11, 12);
+
     @BeforeEach
     void setup() {
 
-        vendedor = new Vendedor(ID_VENDEDOR, "Roberto");
+        vendedor = new Vendedor(ID_VENDEDOR, "Nome");
 
         vendaRequest = new VendaRequest(
                 LocalDate.of(2025, 11, 20),
@@ -70,13 +72,6 @@ class VendaServiceTest {
                 null,
                 vendaRequest.getDataVenda(),
                 vendaRequest.getValor(),
-                vendedor
-        );
-
-        vendaAtualizada = new Venda(
-                null,
-                LocalDate.of(2025, 11, 21),
-                new BigDecimal("999.99"),
                 vendedor
         );
 
@@ -96,7 +91,305 @@ class VendaServiceTest {
         );
     }
 
+    @Test
+    void createQuandoRequestValidaRetornaVendaResponse() {
+        when(vendedorRepository.findById(ID_VENDEDOR))
+                .thenReturn(Optional.of(vendedor));
+        when(mapper.toEntity(vendaRequest, vendedor))
+                .thenReturn(vendaEntity);
+        when(vendaRepository.save(vendaEntity))
+                .thenReturn(vendaSalva);
+        when(mapper.toResponse(vendaSalva))
+                .thenReturn(vendaResponse);
 
+        VendaResponse result = vendaService.create(vendaRequest);
 
-    
+        assertNotNull(result);
+        assertEquals(ID_VENDA, result.id());
+        assertEquals(vendaRequest.getValor(), result.valor());
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(mapper).toEntity(vendaRequest, vendedor);
+        verify(vendaRepository).save(vendaEntity);
+        verify(mapper).toResponse(vendaSalva);
+    }
+
+    @Test
+    void createQuandoVendedorNaoExisteLancaVendedorNotFoundException() {
+        when(vendedorRepository.findById(ID_VENDEDOR))
+                .thenReturn(Optional.empty());
+
+        assertThrows(VendedorNotFoundException.class,
+                () -> vendaService.create(vendaRequest));
+
+        verify(mapper, never()).toEntity(any(), any());
+        verify(vendaRepository, never()).save(any());
+    }
+
+    @Test
+    void createQuandoSaveFalhaLancaDataIntegrityViolationException() {
+        when(vendedorRepository.findById(ID_VENDEDOR))
+                .thenReturn(Optional.of(vendedor));
+        when(mapper.toEntity(any(), any()))
+                .thenReturn(vendaEntity);
+        when(vendaRepository.save(any()))
+                .thenThrow(new DataIntegrityViolationException("Erro"));
+
+        assertThrows(DataIntegrityViolationException.class,
+                () -> vendaService.create(vendaRequest));
+
+        verify(mapper, never()).toResponse(any());
+    }
+
+    @Test
+    void createQuandoMapperToResponseFalhaLancaRuntimeException() {
+        when(vendedorRepository.findById(ID_VENDEDOR))
+                .thenReturn(Optional.of(vendedor));
+        when(mapper.toEntity(any(), any()))
+                .thenReturn(vendaEntity);
+        when(vendaRepository.save(any()))
+                .thenReturn(vendaSalva);
+        when(mapper.toResponse(any()))
+                .thenThrow(new RuntimeException("Erro response"));
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.create(vendaRequest));
+    }
+
+    @Test
+    void deleteQuandoIdExisteDeletaComSucesso() {
+        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaSalva));
+
+        assertDoesNotThrow(() -> vendaService.delete(ID_VENDA));
+
+        verify(vendaRepository).findById(ID_VENDA);
+        verify(vendaRepository).delete(vendaSalva);
+    }
+
+    @Test
+    void deleteQuandoIdInexistenteLancaVendaNotFoundException() {
+        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.empty());
+
+        assertThrows(VendaNotFoundException.class,
+                () -> vendaService.delete(ID_VENDA));
+
+        verify(vendaRepository, never()).delete(any());
+    }
+
+    @Test
+    void deleteQuandoRepositoryFalhaLancaRuntimeException() {
+        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaSalva));
+        doThrow(new RuntimeException("Erro delete"))
+                .when(vendaRepository).delete(vendaSalva);
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.delete(ID_VENDA));
+    }
+
+    @Test
+    void getByIdQuandoIdExisteRetornaResponse() {
+        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaSalva));
+        when(mapper.toResponse(vendaSalva)).thenReturn(vendaResponse);
+
+        VendaResponse result = vendaService.getById(ID_VENDA);
+
+        assertNotNull(result);
+        assertEquals(vendaResponse.id(), result.id());
+        assertEquals(vendaResponse.valor(), result.valor());
+
+        verify(vendaRepository).findById(ID_VENDA);
+        verify(mapper).toResponse(vendaSalva);
+    }
+
+    @Test
+    void getByIdQuandoIdInexistenteLancaVendaNotFoundException() {
+        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.empty());
+
+        assertThrows(VendaNotFoundException.class,
+                () -> vendaService.getById(ID_VENDA));
+
+        verify(mapper, never()).toResponse(any());
+    }
+
+    @Test
+    void getVendasPorVendedorByIdQuandoIdExisteRetornaListaDeVendas() {
+        List<Venda> listaVendas = List.of(vendaSalva);
+
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+        when(vendaRepository.findByVendedor(vendedor)).thenReturn(listaVendas);
+        when(mapper.toResponse(vendaSalva)).thenReturn(vendaResponse);
+
+        List<VendaResponse> result = vendaService.getVendasPorVendedorById(ID_VENDEDOR);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(vendaResponse.id(), result.get(0).id());
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaRepository).findByVendedor(vendedor);
+        verify(mapper).toResponse(vendaSalva);
+    }
+
+    @Test
+    void getVendasPorVendedorByIdQuandoVendedorNaoExisteLancaVendedorNotFoundException() {
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.empty());
+
+        assertThrows(VendedorNotFoundException.class,
+                () -> vendaService.getVendasPorVendedorById(ID_VENDEDOR));
+
+        verify(vendaRepository, never()).findByVendedor(any());
+        verify(mapper, never()).toResponse(any());
+    }
+
+    @Test
+    void getVendasPorVendedorByIdQuandoRepositoryRetornaVazioRetornaListaVazia() {
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+        when(vendaRepository.findByVendedor(vendedor)).thenReturn(List.of());
+
+        List<VendaResponse> result = vendaService.getVendasPorVendedorById(ID_VENDEDOR);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaRepository).findByVendedor(vendedor);
+        verify(mapper, never()).toResponse(any());
+    }
+
+    @Test
+    void getAllRetornaListaDeVendasResponse() {
+        List<Venda> listaVendas = List.of(vendaSalva);
+        List<VendaResponse> listaResponse = List.of(vendaResponse);
+
+        when(vendaRepository.findAll()).thenReturn(listaVendas);
+        when(mapper.toResponseList(listaVendas)).thenReturn(listaResponse);
+
+        List<VendaResponse> result = vendaService.getAll();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(vendaResponse.id(), result.get(0).id());
+
+        verify(vendaRepository).findAll();
+        verify(mapper).toResponseList(listaVendas);
+    }
+
+    @Test
+    void getAllQuandoRepositoryRetornaVazioRetornaListaVazia() {
+        when(vendaRepository.findAll()).thenReturn(List.of());
+        when(mapper.toResponseList(List.of())).thenReturn(List.of());
+
+        List<VendaResponse> result = vendaService.getAll();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(vendaRepository).findAll();
+        verify(mapper).toResponseList(List.of());
+    }
+
+    @Test
+    void calcularMediaDiariaComVendasCalculaTotalQuantidadeDiasEMediaCorretamente() {
+        MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
+
+        Venda v1 = new Venda(null, LocalDate.of(2025,11,10), new BigDecimal("100.50"), vendedor);
+        Venda v2 = new Venda(null, LocalDate.of(2025,11,12), new BigDecimal("200.25"), vendedor);
+
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+        when(vendaRepository.findByVendedorAndDataVendaBetween(vendedor, DATA_INICIO_VALIDO, DATA_FIM_VALIDO))
+                .thenReturn(List.of(v1, v2));
+
+        MediaPorPeriodoResponse resp = vendaService.calcularMediaDiaria(ID_VENDEDOR, request);
+
+        assertEquals(0, resp.totalVendido().compareTo(new BigDecimal("300.75")));
+        assertEquals(0, resp.mediaDiaria().compareTo(new BigDecimal("100.25")));
+        assertEquals(3L, resp.dias());
+        assertEquals(2L, resp.quantidadeVendas());
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaRepository).findByVendedorAndDataVendaBetween(vendedor, DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
+    }
+
+    @Test
+    void calcularMediaDiariaQuandoPeriodoInvalidoLancaPeriodoInvalidoException() {
+        MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(DATA_INICIO_VALIDO, DATA_INICIO_VALIDO.minusDays(1));
+
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+
+        assertThrows(PeriodoInvalidoException.class,
+                () -> vendaService.calcularMediaDiaria(ID_VENDEDOR, request));
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verifyNoMoreInteractions(vendaRepository);
+    }
+
+    @Test
+    void calcularMediaDiariaQuandoVendedorNaoExisteLancaVendedorNotFoundException() {
+        MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
+
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.empty());
+
+        assertThrows(VendedorNotFoundException.class,
+                () -> vendaService.calcularMediaDiaria(ID_VENDEDOR, request));
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verifyNoInteractions(vendaRepository);
+    }
+
+    @Test
+    void calcularMediaDiariaQuandoRepositoryFalhaPropagaExcecao() {
+        MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
+
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+        when(vendaRepository.findByVendedorAndDataVendaBetween(vendedor, DATA_INICIO_VALIDO, DATA_FIM_VALIDO))
+                .thenThrow(new RuntimeException("Erro DB"));
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.calcularMediaDiaria(ID_VENDEDOR, request));
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaRepository).findByVendedorAndDataVendaBetween(vendedor, DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
+    }
+
+    @Test
+    void calcularMediaDiariaQuandoNaoHaVendasRetornaZerosECorretoDiasQuantidade() {
+        MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
+
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+        when(vendaRepository.findByVendedorAndDataVendaBetween(vendedor, DATA_INICIO_VALIDO, DATA_FIM_VALIDO))
+                .thenReturn(List.of());
+
+        MediaPorPeriodoResponse resp = vendaService.calcularMediaDiaria(ID_VENDEDOR, request);
+
+        assertEquals(0, resp.totalVendido().compareTo(BigDecimal.ZERO));
+        assertEquals(0, resp.mediaDiaria().compareTo(BigDecimal.ZERO));
+        assertEquals(3L, resp.dias());
+        assertEquals(0L, resp.quantidadeVendas());
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaRepository).findByVendedorAndDataVendaBetween(vendedor, DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
+    }
+
+    @Test
+    void calcularMediaDiariaInicioIgualFimContaUmDia() {
+        LocalDate dia = LocalDate.of(2025, 11, 20);
+        MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(dia, dia);
+
+        Venda v = new Venda(null, dia, new BigDecimal("50.00"), vendedor);
+
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+        when(vendaRepository.findByVendedorAndDataVendaBetween(vendedor, dia, dia))
+                .thenReturn(List.of(v));
+
+        MediaPorPeriodoResponse resp = vendaService.calcularMediaDiaria(ID_VENDEDOR, request);
+
+        assertEquals(0, resp.totalVendido().compareTo(new BigDecimal("50.00")));
+        assertEquals(0, resp.mediaDiaria().compareTo(new BigDecimal("50.00")));
+        assertEquals(1L, resp.dias());
+        assertEquals(1L, resp.quantidadeVendas());
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaRepository).findByVendedorAndDataVendaBetween(vendedor, dia, dia);
+    }
+
 }

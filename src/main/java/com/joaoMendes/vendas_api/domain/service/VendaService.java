@@ -40,6 +40,30 @@ public class VendaService {
                 .orElseThrow(() -> new VendedorNotFoundException(id));
     }
 
+    private void validarPeriodo(LocalDate inicio, LocalDate fim) {
+        if (fim.isBefore(inicio)) {
+            throw new PeriodoInvalidoException(inicio, fim);
+        }
+    }
+
+    private List<Venda> buscarVendas(Vendedor vendedor, LocalDate inicio, LocalDate fim) {
+        return vendaRepository.findByVendedorAndDataVendaBetween(vendedor, inicio, fim);
+    }
+
+    private BigDecimal calcularTotalVendas(List<Venda> vendas) {
+        return vendas.stream()
+                .map(Venda::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private long calcularDias(LocalDate inicio, LocalDate fim) {
+        return ChronoUnit.DAYS.between(inicio, fim) + 1;
+    }
+
+    private BigDecimal calcularMediaDiaria(BigDecimal totalVendido, long dias) {
+        return dias > 0 ? totalVendido.divide(BigDecimal.valueOf(dias), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+    }
+
     public VendaResponse create(VendaRequest request){
         Vendedor vendedor = findVendedorOrThrow(request.getIdVendedor());
 
@@ -80,29 +104,19 @@ public class VendaService {
         return mapper.toResponse(vendaRepository.save(vendaExistente));
     }
 
-     public MediaPorPeriodoResponse calcularMediaDiaria(Long idVendedor, MediaPorPeriodoRequest periodoRequest){
+    public MediaPorPeriodoResponse calcularMediaDiaria(Long idVendedor, MediaPorPeriodoRequest periodoRequest) {
         Vendedor vendedor = findVendedorOrThrow(idVendedor);
 
         LocalDate inicio = periodoRequest.getDataInicio();
         LocalDate fim = periodoRequest.getDataFim();
-        if (fim.isBefore(inicio)) {
-            throw new PeriodoInvalidoException(inicio,fim);
-        }
+        validarPeriodo(inicio, fim);
 
-        List<Venda> vendas = vendaRepository.findByVendedorAndDataVendaBetween(
-                vendedor,
-                inicio,
-                fim
-        );
+        List<Venda> vendas = buscarVendas(vendedor, inicio, fim);
 
-        BigDecimal totalVendido = vendas.stream()
-                .map(Venda::getValor)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        long quantidadeVendas = vendas.stream().count();
-
-
-        long dias = ChronoUnit.DAYS.between(inicio, fim) + 1;
-        BigDecimal mediaDiaria = dias > 0 ? totalVendido.divide(BigDecimal.valueOf(dias), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal totalVendido = calcularTotalVendas(vendas);
+        long quantidadeVendas = vendas.size();
+        long dias = calcularDias(inicio, fim);
+        BigDecimal mediaDiaria = calcularMediaDiaria(totalVendido, dias);
 
         return new MediaPorPeriodoResponse(
                 vendedor.getId(),
