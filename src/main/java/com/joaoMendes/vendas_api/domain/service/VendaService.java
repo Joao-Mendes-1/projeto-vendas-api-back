@@ -80,7 +80,7 @@ public class VendaService {
         return mapper.toResponse(vendaRepository.save(vendaExistente));
     }
 
-    public MediaPorPeriodoResponse calcularMediaDiaria(Long idVendedor, MediaPorPeriodoRequest periodoRequest){
+     public MediaPorPeriodoResponse calcularMediaDiaria(Long idVendedor, MediaPorPeriodoRequest periodoRequest){
         Vendedor vendedor = findVendedorOrThrow(idVendedor);
 
         LocalDate inicio = periodoRequest.getDataInicio();

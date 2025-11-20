@@ -63,9 +63,10 @@ public class VendedorService {
     }
 
     public VendedorResponse update(Long id, VendedorRequest request){
+        Vendedor vendedorExistente = findVendedorOrThrow(id);
         request.setNome(cleanStringForSave(request.getNome()));
         validateNomeDuplicado(request.getNome(), id);
-        Vendedor vendedorExistente = findVendedorOrThrow(id);
+
 
         vendedorExistente.updateFrom(vendedorMapper.toEntity(request)) ;
 
