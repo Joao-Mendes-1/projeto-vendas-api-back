@@ -2,10 +2,10 @@ package com.joaoMendes.vendas_api.domain.service;
 
 import com.joaoMendes.vendas_api.domain.entities.Vendedor;
 import com.joaoMendes.vendas_api.domain.exception.VendedorNotFoundException;
+import com.joaoMendes.vendas_api.domain.repository.VendedorRepository;
 import com.joaoMendes.vendas_api.dto.request.VendedorRequest;
 import com.joaoMendes.vendas_api.dto.response.VendedorResponse;
 import com.joaoMendes.vendas_api.mapper.VendedorMapper;
-import com.joaoMendes.vendas_api.domain.repository.VendedorRepository;
 import com.joaoMendes.vendas_api.utils.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ class VendedorServiceTest {
     @InjectMocks
     private VendedorService vendedorService;
 
-    private final String NOME = "nome";
+    private final String NOME = "vendedorNome";
     private final String nomeNormalizado = StringUtils.normalizeString(NOME);
     private VendedorRequest requestValido;
     private Vendedor vendedorEntity;
@@ -303,6 +303,24 @@ class VendedorServiceTest {
 
         verify(vendedorRepository, never()).save(any());
     }
+
+    @Test
+    void updateQuandoNomeJaExisteMasEhMesmoVendedorNaoLancaExcecao() {
+        Vendedor existente = new Vendedor(1L, NOME);
+
+        when(vendedorRepository.findById(1L)).thenReturn(Optional.of(existente));
+        when(vendedorRepository.findByNomeIgnoreCase(nomeNormalizado))
+                .thenReturn(Optional.of(existente));
+        when(vendedorMapper.toEntity(requestValido)).thenReturn(new Vendedor(null, NOME));
+        when(vendedorRepository.save(existente)).thenReturn(vendedorSalvo);
+        when(vendedorMapper.toResponse(vendedorSalvo)).thenReturn(vendedorResponse);
+
+        VendedorResponse result = vendedorService.update(1L, requestValido);
+
+        assertEquals(1L, result.id());
+        assertEquals(NOME, result.nome());
+    }
+
 
     @Test
     void updateQuandoSaveFalhaLancaDataIntegrityViolationException() {

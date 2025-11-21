@@ -142,6 +142,19 @@ class VendaServiceTest {
     }
 
     @Test
+    void createQuandoMapperToEntityFalhaLancaRuntimeException() {
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+        when(mapper.toEntity(any(), any()))
+                .thenThrow(new RuntimeException("Erro mapper"));
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.create(vendaRequest));
+
+        verify(vendaRepository, never()).save(any());
+        verify(mapper, never()).toResponse(any());
+    }
+
+    @Test
     void createQuandoMapperToResponseFalhaLancaRuntimeException() {
         when(vendedorRepository.findById(ID_VENDEDOR))
                 .thenReturn(Optional.of(vendedor));
@@ -177,12 +190,13 @@ class VendaServiceTest {
     }
 
     @Test
-    void deleteQuandoRepositoryFalhaLancaRuntimeException() {
-        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaSalva));
-        doThrow(new RuntimeException("Erro delete"))
+    void deleteQuandoDeleteFalhaLancaDataIntegrityViolationException() {
+        when(vendaRepository.findById(ID_VENDA))
+                .thenReturn(Optional.of(vendaSalva));
+        doThrow(new DataIntegrityViolationException("Erro delete"))
                 .when(vendaRepository).delete(vendaSalva);
 
-        assertThrows(RuntimeException.class,
+        assertThrows(DataIntegrityViolationException.class,
                 () -> vendaService.delete(ID_VENDA));
     }
 
@@ -199,6 +213,17 @@ class VendaServiceTest {
 
         verify(vendaRepository).findById(ID_VENDA);
         verify(mapper).toResponse(vendaSalva);
+    }
+
+    @Test
+    void getByIdQuandoFindByIdFalhaPropagaExcecao() {
+        when(vendaRepository.findById(any()))
+                .thenThrow(new RuntimeException("Erro repo"));
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.getById(ID_VENDA));
+
+        verify(mapper, never()).toResponse(any());
     }
 
     @Test
@@ -257,6 +282,19 @@ class VendaServiceTest {
     }
 
     @Test
+    void getVendasPorVendedorByIdQuandoRepositoryFalhaLancaExcecao() {
+        when(vendedorRepository.findById(ID_VENDEDOR))
+                .thenReturn(Optional.of(vendedor));
+        when(vendaRepository.findByVendedor(vendedor))
+                .thenThrow(new RuntimeException("Erro repository"));
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.getVendasPorVendedorById(ID_VENDEDOR));
+
+        verify(mapper, never()).toResponse(any());
+    }
+
+    @Test
     void getAllRetornaListaDeVendasResponse() {
         List<Venda> listaVendas = List.of(vendaSalva);
         List<VendaResponse> listaResponse = List.of(vendaResponse);
@@ -277,7 +315,7 @@ class VendaServiceTest {
     @Test
     void getAllQuandoRepositoryRetornaVazioRetornaListaVazia() {
         when(vendaRepository.findAll()).thenReturn(List.of());
-        when(mapper.toResponseList(List.of())).thenReturn(List.of());
+        when(mapper.toResponseList(anyList())).thenReturn(List.of());
 
         List<VendaResponse> result = vendaService.getAll();
 
@@ -285,8 +323,133 @@ class VendaServiceTest {
         assertTrue(result.isEmpty());
 
         verify(vendaRepository).findAll();
-        verify(mapper).toResponseList(List.of());
+        verify(mapper).toResponseList(anyList());
     }
+
+    @Test
+    void getAllQuandoRepositoryFalhaLancaExcecao() {
+        when(vendaRepository.findAll())
+                .thenThrow(new RuntimeException("Erro repository"));
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.getAll());
+
+        verify(mapper, never()).toResponseList(anyList());
+    }
+
+
+    @Test
+    void updateQuandoDadosValidosRetornaVendaResponse() {
+        Venda vendaExistente = vendaSalva;
+        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaExistente));
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+        when(mapper.toEntity(vendaRequest, vendedor)).thenReturn(vendaEntity);
+        when(vendaRepository.save(vendaExistente)).thenReturn(vendaSalva);
+        when(mapper.toResponse(vendaSalva)).thenReturn(vendaResponse);
+
+        VendaResponse result = vendaService.update(ID_VENDA, vendaRequest);
+
+        assertEquals(ID_VENDA, result.id());
+        assertEquals(VALOR, result.valor());
+
+        verify(vendaRepository).findById(ID_VENDA);
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(mapper).toEntity(vendaRequest, vendedor);
+        verify(vendaRepository).save(vendaExistente);
+        verify(mapper).toResponse(vendaSalva);
+    }
+
+    @Test
+    void updateQuandoVendaNaoExisteLancaVendaNotFoundException() {
+        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.empty());
+
+        assertThrows(VendaNotFoundException.class,
+                () -> vendaService.update(ID_VENDA, vendaRequest));
+
+        verify(vendedorRepository, never()).findById(any());
+        verify(mapper, never()).toEntity(any(), any());
+        verify(vendaRepository, never()).save(any());
+    }
+
+    @Test
+    void updateQuandoVendedorNaoExisteLancaVendedorNotFoundException() {
+        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaSalva));
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.empty());
+
+        assertThrows(VendedorNotFoundException.class,
+                () -> vendaService.update(ID_VENDA, vendaRequest));
+
+        verify(mapper, never()).toEntity(any(), any());
+        verify(vendaRepository, never()).save(any());
+    }
+
+    @Test
+    void updateQuandoUpdateFromFalhaLancaRuntimeException() {
+        Venda vendaMock = mock(Venda.class);
+
+        when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaMock));
+        when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
+        when(mapper.toEntity(any(), any())).thenReturn(vendaEntity);
+
+        doThrow(new RuntimeException("Erro updateFrom"))
+                .when(vendaMock).updateFrom(vendaEntity);
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.update(ID_VENDA, vendaRequest));
+
+        verify(vendaRepository, never()).save(any());
+    }
+
+    @Test
+    void updateQuandoMapperToEntityFalhaLancaRuntimeException() {
+        when(vendaRepository.findById(ID_VENDA))
+                .thenReturn(Optional.of(vendaSalva));
+        when(vendedorRepository.findById(ID_VENDEDOR))
+                .thenReturn(Optional.of(vendedor));
+        when(mapper.toEntity(any(), any()))
+                .thenThrow(new RuntimeException("Erro mapper"));
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.update(ID_VENDA, vendaRequest));
+
+        verify(vendaRepository, never()).save(any());
+        verify(mapper, never()).toResponse(any());
+    }
+
+    @Test
+    void updateQuandoSaveFalhaLancaDataIntegrityViolationException() {
+        when(vendaRepository.findById(ID_VENDA))
+                .thenReturn(Optional.of(vendaSalva));
+        when(vendedorRepository.findById(ID_VENDEDOR))
+                .thenReturn(Optional.of(vendedor));
+        when(mapper.toEntity(any(), any()))
+                .thenReturn(vendaEntity);
+        when(vendaRepository.save(any()))
+                .thenThrow(new DataIntegrityViolationException("Erro"));
+
+        assertThrows(DataIntegrityViolationException.class,
+                () -> vendaService.update(ID_VENDA, vendaRequest));
+
+        verify(mapper, never()).toResponse(any());
+    }
+
+    @Test
+    void updateQuandoMapperToResponseFalhaLancaRuntimeException() {
+        when(vendaRepository.findById(ID_VENDA))
+                .thenReturn(Optional.of(vendaSalva));
+        when(vendedorRepository.findById(ID_VENDEDOR))
+                .thenReturn(Optional.of(vendedor));
+        when(mapper.toEntity(any(), any()))
+                .thenReturn(vendaEntity);
+        when(vendaRepository.save(any()))
+                .thenReturn(vendaSalva);
+        when(mapper.toResponse(any()))
+                .thenThrow(new RuntimeException("Erro response"));
+
+        assertThrows(RuntimeException.class,
+                () -> vendaService.update(ID_VENDA, vendaRequest));
+    }
+
 
     @Test
     void calcularMediaDiariaComVendasCalculaTotalQuantidadeDiasEMediaCorretamente() {
