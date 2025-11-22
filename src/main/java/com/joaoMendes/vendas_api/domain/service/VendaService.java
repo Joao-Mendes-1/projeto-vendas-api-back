@@ -61,7 +61,7 @@ public class VendaService {
     }
 
     private BigDecimal calcularMediaDiaria(BigDecimal totalVendido, long dias) {
-        return dias > 0 ? totalVendido.divide(BigDecimal.valueOf(dias), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        return totalVendido.divide(BigDecimal.valueOf(dias), 2, RoundingMode.HALF_UP);
     }
 
     public VendaResponse create(VendaRequest request){
