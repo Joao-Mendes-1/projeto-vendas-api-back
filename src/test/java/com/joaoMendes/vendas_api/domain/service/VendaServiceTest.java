@@ -220,11 +220,11 @@ class VendaServiceTest {
 
     @Test
     void getByIdQuandoFindByIdFalhaPropagaExcecao() {
-        when(vendaRepository.findById(any()))
+        when(vendaRepository.findById(ID_VENDA))
                 .thenThrow(new RuntimeException("Erro repo"));
 
         assertThrows(RuntimeException.class,
-                () -> vendaService.getById(ID_VENDA));
+                () -> vendaService.getById(any()));
 
         verify(vendaMapper, never()).toResponse(any());
     }

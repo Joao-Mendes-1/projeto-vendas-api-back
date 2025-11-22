@@ -67,6 +67,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(body);
     }
+
     @ExceptionHandler(VendaNotFoundException.class)
     public ResponseEntity<Object> handleVendaNotFound(VendaNotFoundException ex) {
 
