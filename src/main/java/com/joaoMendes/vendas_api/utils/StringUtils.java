@@ -7,7 +7,7 @@ public class StringUtils {
     }
 
     public static String cleanStringForSave(String s) {
-        return s.trim();
+        return s.replaceAll("[^\\p{L}]", "");
     }
 
 }

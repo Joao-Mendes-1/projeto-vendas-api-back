@@ -38,7 +38,7 @@ class VendaServiceTest {
     private VendedorRepository vendedorRepository;
 
     @Mock
-    private VendaMapper mapper;
+    private VendaMapper vendaMapper;
 
     @InjectMocks
     private VendaService vendaService;
@@ -95,11 +95,11 @@ class VendaServiceTest {
     void createQuandoRequestValidaRetornaVendaResponse() {
         when(vendedorRepository.findById(ID_VENDEDOR))
                 .thenReturn(Optional.of(vendedor));
-        when(mapper.toEntity(vendaRequest, vendedor))
+        when(vendaMapper.toEntity(vendaRequest, vendedor))
                 .thenReturn(vendaEntity);
         when(vendaRepository.save(vendaEntity))
                 .thenReturn(vendaSalva);
-        when(mapper.toResponse(vendaSalva))
+        when(vendaMapper.toResponse(vendaSalva))
                 .thenReturn(vendaResponse);
 
         VendaResponse result = vendaService.create(vendaRequest);
@@ -109,9 +109,9 @@ class VendaServiceTest {
         assertEquals(vendaRequest.getValor(), result.valor());
 
         verify(vendedorRepository).findById(ID_VENDEDOR);
-        verify(mapper).toEntity(vendaRequest, vendedor);
+        verify(vendaMapper).toEntity(vendaRequest, vendedor);
         verify(vendaRepository).save(vendaEntity);
-        verify(mapper).toResponse(vendaSalva);
+        verify(vendaMapper).toResponse(vendaSalva);
     }
 
     @Test
@@ -122,7 +122,7 @@ class VendaServiceTest {
         assertThrows(VendedorNotFoundException.class,
                 () -> vendaService.create(vendaRequest));
 
-        verify(mapper, never()).toEntity(any(), any());
+        verify(vendaMapper, never()).toEntity(any(), any());
         verify(vendaRepository, never()).save(any());
     }
 
@@ -130,7 +130,7 @@ class VendaServiceTest {
     void createQuandoSaveFalhaLancaDataIntegrityViolationException() {
         when(vendedorRepository.findById(ID_VENDEDOR))
                 .thenReturn(Optional.of(vendedor));
-        when(mapper.toEntity(any(), any()))
+        when(vendaMapper.toEntity(any(), any()))
                 .thenReturn(vendaEntity);
         when(vendaRepository.save(any()))
                 .thenThrow(new DataIntegrityViolationException("Erro"));
@@ -138,35 +138,37 @@ class VendaServiceTest {
         assertThrows(DataIntegrityViolationException.class,
                 () -> vendaService.create(vendaRequest));
 
-        verify(mapper, never()).toResponse(any());
+        verify(vendaMapper, never()).toResponse(any());
     }
 
     @Test
     void createQuandoMapperToEntityFalhaLancaRuntimeException() {
         when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
-        when(mapper.toEntity(any(), any()))
+        when(vendaMapper.toEntity(any(), any()))
                 .thenThrow(new RuntimeException("Erro mapper"));
 
         assertThrows(RuntimeException.class,
                 () -> vendaService.create(vendaRequest));
 
         verify(vendaRepository, never()).save(any());
-        verify(mapper, never()).toResponse(any());
+        verify(vendaMapper, never()).toResponse(any());
     }
 
     @Test
     void createQuandoMapperToResponseFalhaLancaRuntimeException() {
         when(vendedorRepository.findById(ID_VENDEDOR))
                 .thenReturn(Optional.of(vendedor));
-        when(mapper.toEntity(any(), any()))
+        when(vendaMapper.toEntity(any(), any()))
                 .thenReturn(vendaEntity);
         when(vendaRepository.save(any()))
                 .thenReturn(vendaSalva);
-        when(mapper.toResponse(any()))
+        when(vendaMapper.toResponse(any()))
                 .thenThrow(new RuntimeException("Erro response"));
 
         assertThrows(RuntimeException.class,
                 () -> vendaService.create(vendaRequest));
+        verify(vendaMapper, never()).toResponse(any());
+        verify(vendaRepository, never()).save(any());
     }
 
     @Test
@@ -198,12 +200,15 @@ class VendaServiceTest {
 
         assertThrows(DataIntegrityViolationException.class,
                 () -> vendaService.delete(ID_VENDA));
+
+        verify(vendaRepository).findById(ID_VENDA);
+        verify(vendaRepository).delete(vendaSalva);
     }
 
     @Test
     void getByIdQuandoIdExisteRetornaResponse() {
         when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaSalva));
-        when(mapper.toResponse(vendaSalva)).thenReturn(vendaResponse);
+        when(vendaMapper.toResponse(vendaSalva)).thenReturn(vendaResponse);
 
         VendaResponse result = vendaService.getById(ID_VENDA);
 
@@ -212,7 +217,7 @@ class VendaServiceTest {
         assertEquals(vendaResponse.valor(), result.valor());
 
         verify(vendaRepository).findById(ID_VENDA);
-        verify(mapper).toResponse(vendaSalva);
+        verify(vendaMapper).toResponse(vendaSalva);
     }
 
     @Test
@@ -223,7 +228,7 @@ class VendaServiceTest {
         assertThrows(RuntimeException.class,
                 () -> vendaService.getById(ID_VENDA));
 
-        verify(mapper, never()).toResponse(any());
+        verify(vendaMapper, never()).toResponse(any());
     }
 
     @Test
@@ -233,7 +238,7 @@ class VendaServiceTest {
         assertThrows(VendaNotFoundException.class,
                 () -> vendaService.getById(ID_VENDA));
 
-        verify(mapper, never()).toResponse(any());
+        verify(vendaMapper, never()).toResponse(any());
     }
 
     @Test
@@ -242,7 +247,7 @@ class VendaServiceTest {
 
         when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
         when(vendaRepository.findByVendedor(vendedor)).thenReturn(listaVendas);
-        when(mapper.toResponse(vendaSalva)).thenReturn(vendaResponse);
+        when(vendaMapper.toResponse(vendaSalva)).thenReturn(vendaResponse);
 
         List<VendaResponse> result = vendaService.getVendasPorVendedorById(ID_VENDEDOR);
 
@@ -252,7 +257,7 @@ class VendaServiceTest {
 
         verify(vendedorRepository).findById(ID_VENDEDOR);
         verify(vendaRepository).findByVendedor(vendedor);
-        verify(mapper).toResponse(vendaSalva);
+        verify(vendaMapper).toResponse(vendaSalva);
     }
 
     @Test
@@ -263,7 +268,7 @@ class VendaServiceTest {
                 () -> vendaService.getVendasPorVendedorById(ID_VENDEDOR));
 
         verify(vendaRepository, never()).findByVendedor(any());
-        verify(mapper, never()).toResponse(any());
+        verify(vendaMapper, never()).toResponse(any());
     }
 
     @Test
@@ -278,7 +283,7 @@ class VendaServiceTest {
 
         verify(vendedorRepository).findById(ID_VENDEDOR);
         verify(vendaRepository).findByVendedor(vendedor);
-        verify(mapper, never()).toResponse(any());
+        verify(vendaMapper, never()).toResponse(any());
     }
 
     @Test
@@ -291,7 +296,7 @@ class VendaServiceTest {
         assertThrows(RuntimeException.class,
                 () -> vendaService.getVendasPorVendedorById(ID_VENDEDOR));
 
-        verify(mapper, never()).toResponse(any());
+        verify(vendaMapper, never()).toResponse(any());
     }
 
     @Test
@@ -300,7 +305,7 @@ class VendaServiceTest {
         List<VendaResponse> listaResponse = List.of(vendaResponse);
 
         when(vendaRepository.findAll()).thenReturn(listaVendas);
-        when(mapper.toResponseList(listaVendas)).thenReturn(listaResponse);
+        when(vendaMapper.toResponseList(listaVendas)).thenReturn(listaResponse);
 
         List<VendaResponse> result = vendaService.getAll();
 
@@ -309,13 +314,13 @@ class VendaServiceTest {
         assertEquals(vendaResponse.id(), result.get(0).id());
 
         verify(vendaRepository).findAll();
-        verify(mapper).toResponseList(listaVendas);
+        verify(vendaMapper).toResponseList(listaVendas);
     }
 
     @Test
     void getAllQuandoRepositoryRetornaVazioRetornaListaVazia() {
         when(vendaRepository.findAll()).thenReturn(List.of());
-        when(mapper.toResponseList(anyList())).thenReturn(List.of());
+        when(vendaMapper.toResponseList(anyList())).thenReturn(List.of());
 
         List<VendaResponse> result = vendaService.getAll();
 
@@ -323,7 +328,7 @@ class VendaServiceTest {
         assertTrue(result.isEmpty());
 
         verify(vendaRepository).findAll();
-        verify(mapper).toResponseList(anyList());
+        verify(vendaMapper).toResponseList(anyList());
     }
 
     @Test
@@ -334,7 +339,7 @@ class VendaServiceTest {
         assertThrows(RuntimeException.class,
                 () -> vendaService.getAll());
 
-        verify(mapper, never()).toResponseList(anyList());
+        verify(vendaMapper, never()).toResponseList(anyList());
     }
 
 
@@ -343,9 +348,9 @@ class VendaServiceTest {
         Venda vendaExistente = vendaSalva;
         when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaExistente));
         when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
-        when(mapper.toEntity(vendaRequest, vendedor)).thenReturn(vendaEntity);
+        when(vendaMapper.toEntity(vendaRequest, vendedor)).thenReturn(vendaEntity);
         when(vendaRepository.save(vendaExistente)).thenReturn(vendaSalva);
-        when(mapper.toResponse(vendaSalva)).thenReturn(vendaResponse);
+        when(vendaMapper.toResponse(vendaSalva)).thenReturn(vendaResponse);
 
         VendaResponse result = vendaService.update(ID_VENDA, vendaRequest);
 
@@ -354,9 +359,9 @@ class VendaServiceTest {
 
         verify(vendaRepository).findById(ID_VENDA);
         verify(vendedorRepository).findById(ID_VENDEDOR);
-        verify(mapper).toEntity(vendaRequest, vendedor);
+        verify(vendaMapper).toEntity(vendaRequest, vendedor);
         verify(vendaRepository).save(vendaExistente);
-        verify(mapper).toResponse(vendaSalva);
+        verify(vendaMapper).toResponse(vendaSalva);
     }
 
     @Test
@@ -367,7 +372,7 @@ class VendaServiceTest {
                 () -> vendaService.update(ID_VENDA, vendaRequest));
 
         verify(vendedorRepository, never()).findById(any());
-        verify(mapper, never()).toEntity(any(), any());
+        verify(vendaMapper, never()).toEntity(any(), any());
         verify(vendaRepository, never()).save(any());
     }
 
@@ -379,7 +384,7 @@ class VendaServiceTest {
         assertThrows(VendedorNotFoundException.class,
                 () -> vendaService.update(ID_VENDA, vendaRequest));
 
-        verify(mapper, never()).toEntity(any(), any());
+        verify(vendaMapper, never()).toEntity(any(), any());
         verify(vendaRepository, never()).save(any());
     }
 
@@ -389,7 +394,7 @@ class VendaServiceTest {
 
         when(vendaRepository.findById(ID_VENDA)).thenReturn(Optional.of(vendaMock));
         when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
-        when(mapper.toEntity(any(), any())).thenReturn(vendaEntity);
+        when(vendaMapper.toEntity(any(), any())).thenReturn(vendaEntity);
 
         doThrow(new RuntimeException("Erro updateFrom"))
                 .when(vendaMock).updateFrom(vendaEntity);
@@ -406,14 +411,14 @@ class VendaServiceTest {
                 .thenReturn(Optional.of(vendaSalva));
         when(vendedorRepository.findById(ID_VENDEDOR))
                 .thenReturn(Optional.of(vendedor));
-        when(mapper.toEntity(any(), any()))
+        when(vendaMapper.toEntity(any(), any()))
                 .thenThrow(new RuntimeException("Erro mapper"));
 
         assertThrows(RuntimeException.class,
                 () -> vendaService.update(ID_VENDA, vendaRequest));
 
         verify(vendaRepository, never()).save(any());
-        verify(mapper, never()).toResponse(any());
+        verify(vendaMapper, never()).toResponse(any());
     }
 
     @Test
@@ -422,7 +427,7 @@ class VendaServiceTest {
                 .thenReturn(Optional.of(vendaSalva));
         when(vendedorRepository.findById(ID_VENDEDOR))
                 .thenReturn(Optional.of(vendedor));
-        when(mapper.toEntity(any(), any()))
+        when(vendaMapper.toEntity(any(), any()))
                 .thenReturn(vendaEntity);
         when(vendaRepository.save(any()))
                 .thenThrow(new DataIntegrityViolationException("Erro"));
@@ -430,7 +435,7 @@ class VendaServiceTest {
         assertThrows(DataIntegrityViolationException.class,
                 () -> vendaService.update(ID_VENDA, vendaRequest));
 
-        verify(mapper, never()).toResponse(any());
+        verify(vendaMapper, never()).toResponse(any());
     }
 
     @Test
@@ -439,15 +444,21 @@ class VendaServiceTest {
                 .thenReturn(Optional.of(vendaSalva));
         when(vendedorRepository.findById(ID_VENDEDOR))
                 .thenReturn(Optional.of(vendedor));
-        when(mapper.toEntity(any(), any()))
+        when(vendaMapper.toEntity(any(), any()))
                 .thenReturn(vendaEntity);
         when(vendaRepository.save(any()))
                 .thenReturn(vendaSalva);
-        when(mapper.toResponse(any()))
+        when(vendaMapper.toResponse(any()))
                 .thenThrow(new RuntimeException("Erro response"));
 
         assertThrows(RuntimeException.class,
                 () -> vendaService.update(ID_VENDA, vendaRequest));
+
+        verify(vendaRepository).findById(ID_VENDA);
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaMapper).toEntity(any(), any());
+        verify(vendaRepository).save(any());
+        verify(vendaMapper).toResponse(any());
     }
 
 
@@ -462,7 +473,7 @@ class VendaServiceTest {
         when(vendaRepository.findByVendedorAndDataVendaBetween(vendedor, DATA_INICIO_VALIDO, DATA_FIM_VALIDO))
                 .thenReturn(List.of(v1, v2));
 
-        MediaPorPeriodoResponse resp = vendaService.calcularMediaDiaria(ID_VENDEDOR, request);
+        MediaPorPeriodoResponse resp = vendaService.calcularMediaPorPeriodo(ID_VENDEDOR, request);
 
         assertEquals(0, resp.totalVendido().compareTo(new BigDecimal("300.75")));
         assertEquals(0, resp.mediaDiaria().compareTo(new BigDecimal("100.25")));
@@ -474,33 +485,33 @@ class VendaServiceTest {
     }
 
     @Test
-    void calcularMediaDiariaQuandoPeriodoInvalidoLancaPeriodoInvalidoException() {
+    void calcularMediaPorPeriodoQuandoPeriodoInvalidoLancaPeriodoInvalidoException() {
         MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(DATA_INICIO_VALIDO, DATA_INICIO_VALIDO.minusDays(1));
 
         when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
 
         assertThrows(PeriodoInvalidoException.class,
-                () -> vendaService.calcularMediaDiaria(ID_VENDEDOR, request));
+                () -> vendaService.calcularMediaPorPeriodo(ID_VENDEDOR, request));
 
         verify(vendedorRepository).findById(ID_VENDEDOR);
         verifyNoMoreInteractions(vendaRepository);
     }
 
     @Test
-    void calcularMediaDiariaQuandoVendedorNaoExisteLancaVendedorNotFoundException() {
+    void calcularMediaPorPeriodoQuandoVendedorNaoExisteLancaVendedorNotFoundException() {
         MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
 
         when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.empty());
 
         assertThrows(VendedorNotFoundException.class,
-                () -> vendaService.calcularMediaDiaria(ID_VENDEDOR, request));
+                () -> vendaService.calcularMediaPorPeriodo(ID_VENDEDOR, request));
 
         verify(vendedorRepository).findById(ID_VENDEDOR);
         verifyNoInteractions(vendaRepository);
     }
 
     @Test
-    void calcularMediaDiariaQuandoRepositoryFalhaPropagaExcecao() {
+    void calcularMediaPorPeriodoQuandoRepositoryFalhaPropagaExcecao() {
         MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
 
         when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
@@ -508,21 +519,21 @@ class VendaServiceTest {
                 .thenThrow(new RuntimeException("Erro DB"));
 
         assertThrows(RuntimeException.class,
-                () -> vendaService.calcularMediaDiaria(ID_VENDEDOR, request));
+                () -> vendaService.calcularMediaPorPeriodo(ID_VENDEDOR, request));
 
         verify(vendedorRepository).findById(ID_VENDEDOR);
         verify(vendaRepository).findByVendedorAndDataVendaBetween(vendedor, DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
     }
 
     @Test
-    void calcularMediaDiariaQuandoNaoHaVendasRetornaZerosECorretoDiasQuantidade() {
+    void calcularMediaPorPeriodoQuandoNaoHaVendasRetornaZerosECorretoDiasQuantidade() {
         MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(DATA_INICIO_VALIDO, DATA_FIM_VALIDO);
 
         when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
         when(vendaRepository.findByVendedorAndDataVendaBetween(vendedor, DATA_INICIO_VALIDO, DATA_FIM_VALIDO))
                 .thenReturn(List.of());
 
-        MediaPorPeriodoResponse resp = vendaService.calcularMediaDiaria(ID_VENDEDOR, request);
+        MediaPorPeriodoResponse resp = vendaService.calcularMediaPorPeriodo(ID_VENDEDOR, request);
 
         assertEquals(0, resp.totalVendido().compareTo(BigDecimal.ZERO));
         assertEquals(0, resp.mediaDiaria().compareTo(BigDecimal.ZERO));
@@ -534,17 +545,17 @@ class VendaServiceTest {
     }
 
     @Test
-    void calcularMediaDiariaInicioIgualFimContaUmDia() {
+    void calcularMediaPorPeriodoInicioIgualFimContaUmDia() {
         LocalDate dia = LocalDate.of(2025, 11, 20);
         MediaPorPeriodoRequest request = new MediaPorPeriodoRequest(dia, dia);
 
-        Venda v = new Venda(null, dia, new BigDecimal("50.00"), vendedor);
+        Venda venda = new Venda(null, dia, new BigDecimal("50.00"), vendedor);
 
         when(vendedorRepository.findById(ID_VENDEDOR)).thenReturn(Optional.of(vendedor));
         when(vendaRepository.findByVendedorAndDataVendaBetween(vendedor, dia, dia))
-                .thenReturn(List.of(v));
+                .thenReturn(List.of(venda));
 
-        MediaPorPeriodoResponse resp = vendaService.calcularMediaDiaria(ID_VENDEDOR, request);
+        MediaPorPeriodoResponse resp = vendaService.calcularMediaPorPeriodo(ID_VENDEDOR, request);
 
         assertEquals(0, resp.totalVendido().compareTo(new BigDecimal("50.00")));
         assertEquals(0, resp.mediaDiaria().compareTo(new BigDecimal("50.00")));
@@ -554,5 +565,4 @@ class VendaServiceTest {
         verify(vendedorRepository).findById(ID_VENDEDOR);
         verify(vendaRepository).findByVendedorAndDataVendaBetween(vendedor, dia, dia);
     }
-
 }

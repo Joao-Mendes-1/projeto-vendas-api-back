@@ -13,6 +13,7 @@ import com.joaoMendes.vendas_api.dto.response.MediaPorPeriodoResponse;
 import com.joaoMendes.vendas_api.dto.response.VendaResponse;
 import com.joaoMendes.vendas_api.mapper.VendaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -60,7 +61,7 @@ public class VendaService {
         return ChronoUnit.DAYS.between(inicio, fim) + 1;
     }
 
-    private BigDecimal calcularMediaDiaria(BigDecimal totalVendido, long dias) {
+    private BigDecimal calcularMediaPorPeriodo(BigDecimal totalVendido, long dias) {
         return totalVendido.divide(BigDecimal.valueOf(dias), 2, RoundingMode.HALF_UP);
     }
 
@@ -104,11 +105,12 @@ public class VendaService {
         return mapper.toResponse(vendaRepository.save(vendaExistente));
     }
 
-    public MediaPorPeriodoResponse calcularMediaDiaria(Long idVendedor, MediaPorPeriodoRequest periodoRequest) {
+    public MediaPorPeriodoResponse calcularMediaPorPeriodo(Long idVendedor, MediaPorPeriodoRequest periodo) {
         Vendedor vendedor = findVendedorOrThrow(idVendedor);
 
-        LocalDate inicio = periodoRequest.getDataInicio();
-        LocalDate fim = periodoRequest.getDataFim();
+        LocalDate inicio = periodo.getDataInicio();
+        LocalDate fim = periodo.getDataFim();
+
         validarPeriodo(inicio, fim);
 
         List<Venda> vendas = buscarVendas(vendedor, inicio, fim);
@@ -116,7 +118,7 @@ public class VendaService {
         BigDecimal totalVendido = calcularTotalVendas(vendas);
         long quantidadeVendas = vendas.size();
         long dias = calcularDias(inicio, fim);
-        BigDecimal mediaDiaria = calcularMediaDiaria(totalVendido, dias);
+        BigDecimal mediaDiaria = calcularMediaPorPeriodo(totalVendido, dias);
 
         return new MediaPorPeriodoResponse(
                 vendedor.getId(),

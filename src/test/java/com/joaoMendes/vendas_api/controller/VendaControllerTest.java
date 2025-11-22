@@ -7,7 +7,6 @@ import com.joaoMendes.vendas_api.dto.request.VendaRequest;
 import com.joaoMendes.vendas_api.dto.response.MediaPorPeriodoResponse;
 import com.joaoMendes.vendas_api.dto.response.VendaResponse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -25,7 +24,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(VendaController.class)
 class VendaControllerTest {
@@ -80,7 +80,6 @@ class VendaControllerTest {
     }
 
     @Test
-    @DisplayName("Dado um VendaRequest válido, Quando criar venda, Então retornar 201 com corpo correto")
     void dadoVendaRequest_quandoCriarVenda_entaoRetornar201() throws Exception {
 
         given(vendaService.create(any(VendaRequest.class)))
@@ -102,7 +101,6 @@ class VendaControllerTest {
     }
 
     @Test
-    @DisplayName("Dado que existem vendas, Quando listar, Então retornar lista preenchida")
     void dadoExistemVendas_quandoListar_entaoRetornarListaPreenchida() throws Exception {
         given(vendaService.getAll()).willReturn(List.of(vendaResponse));
 
@@ -116,7 +114,6 @@ class VendaControllerTest {
     }
 
     @Test
-    @DisplayName("Dado que não existem vendas, Quando listar, Então retornar lista vazia")
     void dadoNenhumaVenda_quandoListar_entaoRetornarListaVazia() throws Exception {
         given(vendaService.getAll()).willReturn(List.of());
 
@@ -129,7 +126,6 @@ class VendaControllerTest {
     }
 
     @Test
-    @DisplayName("Dado id do vendedor, Quando buscar vendas, Então retornar lista do vendedor")
     void dadoIdVendedor_quandoBuscarVendas_entaoRetornarLista() throws Exception {
         given(vendaService.getVendasPorVendedorById(ID_VENDEDOR))
                 .willReturn(List.of(vendaResponse));
@@ -146,7 +142,6 @@ class VendaControllerTest {
     }
 
     @Test
-    @DisplayName("Dado id válido, Quando buscar venda, Então retornar venda")
     void dadoIdValido_quandoBuscarPorId_entaoRetornarVenda() throws Exception {
         given(vendaService.getById(ID_VENDA)).willReturn(vendaResponse);
 
@@ -161,7 +156,6 @@ class VendaControllerTest {
     }
 
     @Test
-    @DisplayName("Dado dados atualizados, Quando atualizar venda, Então retornar venda atualizada")
     void dadoUpdateRequest_quandoAtualizar_entaoRetornarVendaAtualizada() throws Exception {
 
         VendaResponse atualizada = new VendaResponse(
@@ -190,7 +184,6 @@ class VendaControllerTest {
     }
 
     @Test
-    @DisplayName("Dado id válido, Quando deletar venda, Então retornar 204")
     void dadoIdValido_quandoDeletar_entao204() throws Exception {
 
         ResultActions resposta = mockMvc.perform(
@@ -203,10 +196,9 @@ class VendaControllerTest {
     }
 
     @Test
-    @DisplayName("Dado idVendedor e filtro válido, Quando calcular estatística, Então retornar dados de média")
     void dadoFiltro_quandoCalcularEstatistica_entaoRetornarMedia() throws Exception {
 
-        given(vendaService.calcularMediaDiaria(eq(ID_VENDEDOR), any(MediaPorPeriodoRequest.class)))
+        given(vendaService.calcularMediaPorPeriodo(eq(ID_VENDEDOR), any(MediaPorPeriodoRequest.class)))
                 .willReturn(mediaResponse);
 
         String filtroJson = """
@@ -230,6 +222,6 @@ class VendaControllerTest {
                 .andExpect(jsonPath("$.dias").value(20))
                 .andExpect(jsonPath("$.quantidadeVendas").value(10));
 
-        verify(vendaService).calcularMediaDiaria(eq(ID_VENDEDOR), any(MediaPorPeriodoRequest.class));
+        verify(vendaService).calcularMediaPorPeriodo(eq(ID_VENDEDOR), any(MediaPorPeriodoRequest.class));
     }
 }

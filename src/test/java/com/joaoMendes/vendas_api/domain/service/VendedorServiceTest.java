@@ -35,8 +35,8 @@ class VendedorServiceTest {
     @InjectMocks
     private VendedorService vendedorService;
 
-    private final String NOME = "vendedorNome";
-    private final String nomeNormalizado = StringUtils.normalizeString(NOME);
+    private final String vendedorNome = "vendedorNome";
+    private final String nomeNormalizado = StringUtils.normalizeString(vendedorNome);
     private VendedorRequest requestValido;
     private Vendedor vendedorEntity;
     private Vendedor vendedorSalvo;
@@ -44,10 +44,10 @@ class VendedorServiceTest {
 
     @BeforeEach
     void setup() {
-        requestValido = new VendedorRequest(NOME);
-        vendedorEntity = new Vendedor(null, NOME);
-        vendedorSalvo = new Vendedor(1L, NOME);
-        vendedorResponse = new VendedorResponse(1L, NOME);
+        requestValido = new VendedorRequest(vendedorNome);
+        vendedorEntity = new Vendedor(null, vendedorNome);
+        vendedorSalvo = new Vendedor(1L, vendedorNome);
+        vendedorResponse = new VendedorResponse(1L, vendedorNome);
     }
 
     @Test
@@ -61,7 +61,7 @@ class VendedorServiceTest {
 
         assertNotNull(result);
         assertEquals(1L, result.id());
-        assertEquals(NOME, result.nome());
+        assertEquals(vendedorNome, result.nome());
 
         verify(vendedorRepository).findByNomeIgnoreCase(nomeNormalizado);
         verify(vendedorMapper).toEntity(any());
@@ -157,7 +157,7 @@ class VendedorServiceTest {
 
         assertNotNull(result);
         assertEquals(1L, result.id());
-        assertEquals(NOME, result.nome());
+        assertEquals(vendedorNome, result.nome());
     }
 
     @Test
@@ -217,9 +217,9 @@ class VendedorServiceTest {
 
     @Test
     void updateQuandoRequestValidoRetornaVendedorResponse() {
-        Vendedor vendedorExistente = new Vendedor(1L, NOME);
-        Vendedor atualizado = new Vendedor(null, NOME);
-        String nomeNormalizado = StringUtils.normalizeString(NOME);
+        Vendedor vendedorExistente = new Vendedor(1L, vendedorNome);
+        Vendedor atualizado = new Vendedor(null, vendedorNome);
+        String nomeNormalizado = StringUtils.normalizeString(vendedorNome);
 
         when(vendedorRepository.findById(1L)).thenReturn(Optional.of(vendedorExistente));
         when(vendedorRepository.findByNomeIgnoreCase(nomeNormalizado)).thenReturn(Optional.empty());
@@ -230,7 +230,7 @@ class VendedorServiceTest {
         VendedorResponse result = vendedorService.update(1L, requestValido);
 
         assertEquals(1L, result.id());
-        assertEquals(NOME, result.nome());
+        assertEquals(vendedorNome, result.nome());
 
         verify(vendedorRepository).findById(1L);
         verify(vendedorRepository).findByNomeIgnoreCase(nomeNormalizado);
@@ -258,8 +258,8 @@ class VendedorServiceTest {
 
     @Test
     void updateQuandoNomeJaExisteEmOutroVendedorLancaIllegalArgumentException() {
-        Vendedor existente = new Vendedor(1L, NOME);
-        Vendedor outro = new Vendedor(2L, NOME);
+        Vendedor existente = new Vendedor(1L, vendedorNome);
+        Vendedor outro = new Vendedor(2L, vendedorNome);
 
         when(vendedorRepository.findById(1L)).thenReturn(Optional.of(existente));
         when(vendedorRepository.findByNomeIgnoreCase(nomeNormalizado)).thenReturn(Optional.of(outro));
@@ -289,7 +289,7 @@ class VendedorServiceTest {
     @Test
     void updateQuandoUpdateFromFalhaLancaRuntimeException() {
         Vendedor vendedorMock = mock(Vendedor.class);
-        Vendedor novo = new Vendedor(null, NOME);
+        Vendedor novo = new Vendedor(null, vendedorNome);
 
         when(vendedorRepository.findByNomeIgnoreCase(nomeNormalizado)).thenReturn(Optional.empty());
         when(vendedorRepository.findById(any())).thenReturn(Optional.of(vendedorMock));
@@ -306,26 +306,26 @@ class VendedorServiceTest {
 
     @Test
     void updateQuandoNomeJaExisteMasEhMesmoVendedorNaoLancaExcecao() {
-        Vendedor existente = new Vendedor(1L, NOME);
+        Vendedor existente = new Vendedor(1L, vendedorNome);
 
         when(vendedorRepository.findById(1L)).thenReturn(Optional.of(existente));
         when(vendedorRepository.findByNomeIgnoreCase(nomeNormalizado))
                 .thenReturn(Optional.of(existente));
-        when(vendedorMapper.toEntity(requestValido)).thenReturn(new Vendedor(null, NOME));
+        when(vendedorMapper.toEntity(requestValido)).thenReturn(new Vendedor(null, vendedorNome));
         when(vendedorRepository.save(existente)).thenReturn(vendedorSalvo);
         when(vendedorMapper.toResponse(vendedorSalvo)).thenReturn(vendedorResponse);
 
         VendedorResponse result = vendedorService.update(1L, requestValido);
 
         assertEquals(1L, result.id());
-        assertEquals(NOME, result.nome());
+        assertEquals(vendedorNome, result.nome());
     }
 
 
     @Test
     void updateQuandoSaveFalhaLancaDataIntegrityViolationException() {
-        Vendedor vendedorExistente = new Vendedor(1L, NOME);
-        Vendedor novo = new Vendedor(null, NOME);
+        Vendedor vendedorExistente = new Vendedor(1L, vendedorNome);
+        Vendedor novo = new Vendedor(null, vendedorNome);
 
         when(vendedorRepository.findByNomeIgnoreCase(nomeNormalizado)).thenReturn(Optional.empty());
         when(vendedorRepository.findById(1L)).thenReturn(Optional.of(vendedorExistente));

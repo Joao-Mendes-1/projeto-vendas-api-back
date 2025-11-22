@@ -6,7 +6,6 @@ import com.joaoMendes.vendas_api.domain.service.VendedorService;
 import com.joaoMendes.vendas_api.dto.request.VendedorRequest;
 import com.joaoMendes.vendas_api.dto.response.VendedorResponse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -52,7 +51,6 @@ class VendedorControllerTest {
     }
 
     @Test
-    @DisplayName("Dado um VendedorRequest válido, Quando criar venda, Então retornar 201 com corpo correto")
     void dadoVendedorRequest_quandoCriarVendedor_entaoRetornar201() throws Exception {
         given(vendedorService.create(any(VendedorRequest.class)))
                 .willReturn(vendedorResponse);
@@ -70,7 +68,6 @@ class VendedorControllerTest {
     }
 
     @Test
-    @DisplayName("Dado um VendedorRequest inválido, Quando criar vendedor, Então retornar 400 e não chamar service")
     void dadoVendedorRequestInvalido_quandoCriarVendedor_entaoRetornar400() throws Exception {
         VendedorRequest vendedorRequestInvalido = new VendedorRequest("");
 
@@ -79,12 +76,11 @@ class VendedorControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(vendedorRequestInvalido))
         );
-                resposta.andExpect(status().isBadRequest());
-                verify(vendedorService, never()).create(any(VendedorRequest.class));
+        resposta.andExpect(status().isBadRequest());
+        verify(vendedorService, never()).create(any(VendedorRequest.class));
     }
 
     @Test
-    @DisplayName("Dado que existem vendedores, Quando listar vendedores, Então retornar 200 com lista preenchida")
     void dadoExistenciaDeVendedores_quandoListar_entaoRetornar200ComLista() throws Exception {
         given(vendedorService.getAll()).willReturn(List.of(vendedorResponse));
 
@@ -98,7 +94,6 @@ class VendedorControllerTest {
     }
 
     @Test
-    @DisplayName("Dado que não existem vendedores, Quando listar vendedores, Então retornar 200 com lista vazia")
     void dadoNenhumVendedor_quandoListar_entaoRetornar200ComListaVazia() throws Exception {
         given(vendedorService.getAll()).willReturn(List.of());
 
@@ -111,7 +106,6 @@ class VendedorControllerTest {
 
     }
     @Test
-    @DisplayName("Dado um ID existente, Quando buscar vendedor por ID, Então retornar 200 com corpo correto")
     void dadoIdExistente_quandoBuscarPorId_entaoRetornar200() throws Exception {
 
         given(vendedorService.getById(ID_VENDEDOR)).willReturn(vendedorResponse);
@@ -125,7 +119,6 @@ class VendedorControllerTest {
     }
 
     @Test
-    @DisplayName("Dado um ID inexistente, Quando buscar vendedor por ID, Então retornar VendedorNotFoundException")
     void dadoIdInexistente_quandoBuscarPorId_entaoRetornarVendedorNotFoundException() throws Exception {
 
         given(vendedorService.getById(ID_VENDEDOR_INEXISTENTE)).willThrow(new VendedorNotFoundException(ID_VENDEDOR_INEXISTENTE));
@@ -138,7 +131,6 @@ class VendedorControllerTest {
     }
 
     @Test
-    @DisplayName("Dado um ID existente, Quando for deletar por ID, Então retornar 204")
     void dadoIdExistente_quandoDeletarPorId_entaoRetornar204() throws Exception{
 
         ResultActions resposta = mockMvc.perform(
@@ -151,7 +143,6 @@ class VendedorControllerTest {
     }
 
     @Test
-    @DisplayName("Dado um ID inexistente, Quando for deletar por ID, Então retornar VendedorNotFoundException")
     void dadoIdInexistente_quandoDeletarPorId_entaoRetornarVendedorNotFoundException() throws Exception{
 
         doThrow(new VendedorNotFoundException(ID_VENDEDOR_INEXISTENTE)).when(vendedorService).delete(ID_VENDEDOR_INEXISTENTE);
@@ -165,7 +156,6 @@ class VendedorControllerTest {
     }
 
     @Test
-    @DisplayName("Dado um VendedorRequest válido, Quando atualizar vendedor, Então retornar 200 com corpo atualizado")
     void dadoRequestValido_quandoAtualizarVendedor_entaoRetornar200() throws Exception {
 
         long id = 2L;
@@ -189,7 +179,6 @@ class VendedorControllerTest {
     }
 
     @Test
-    @DisplayName("Dado um VendedorRequest inválido, Quando atualizar vendedor, Então retornar 400")
     void dadoRequestInvalido_quandoAtualizar_entaoRetornar400() throws Exception {
 
         long id = 2L;
@@ -207,7 +196,6 @@ class VendedorControllerTest {
     }
 
     @Test
-    @DisplayName("Dado um id inválido, Quando atualizar vendedor, Então retornar VendedorNotFoundException")
     void dadoIdInvalido_quandoAtualizar_entaoRetornarVendedorNotFoundException() throws Exception {
         VendedorRequest request = new VendedorRequest("NOVO_NOME");
 
