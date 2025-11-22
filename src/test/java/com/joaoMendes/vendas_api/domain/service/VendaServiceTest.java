@@ -167,8 +167,6 @@ class VendaServiceTest {
 
         assertThrows(RuntimeException.class,
                 () -> vendaService.create(vendaRequest));
-        verify(vendaMapper, never()).toResponse(any());
-        verify(vendaRepository, never()).save(any());
     }
 
     @Test

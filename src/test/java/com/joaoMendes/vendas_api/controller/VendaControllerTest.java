@@ -201,17 +201,12 @@ class VendaControllerTest {
         given(vendaService.calcularMediaPorPeriodo(eq(ID_VENDEDOR), any(MediaPorPeriodoRequest.class)))
                 .willReturn(mediaResponse);
 
-        String filtroJson = """
-                {
-                  "dataInicio": "01/11/2025",
-                  "dataFim": "20/11/2025"
-                }
-                """;
 
         ResultActions resposta = mockMvc.perform(
-                post("/vendas/{idVendedor}/estatistica", ID_VENDEDOR)
+                get("/vendas/{idVendedor}/estatistica", ID_VENDEDOR)
+                        .param("dataInicio", "01/11/2025")
+                        .param("dataFim", "20/11/2025")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(filtroJson)
         );
 
         resposta.andExpect(status().isOk())
