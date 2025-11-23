@@ -16,4 +16,3 @@ public record MediaPorPeriodoResponse(Long idVendedor,
                                       Long dias,
                                       Long quantidadeVendas) {
 }
-

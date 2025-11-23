@@ -64,9 +64,6 @@ public class VendaController {
             @RequestParam @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate dataInicio,
             @RequestParam @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate dataFim) {
 
-        MediaPorPeriodoResponse response =
-                vendaService.calcularMediaPorPeriodo(idVendedor, new MediaPorPeriodoRequest(dataInicio,dataFim));
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(vendaService.calcularMediaPorPeriodo(idVendedor, new MediaPorPeriodoRequest(dataInicio,dataFim)));
     }
 }

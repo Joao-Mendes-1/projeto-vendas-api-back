@@ -122,6 +122,7 @@ class VendaServiceTest {
         assertThrows(VendedorNotFoundException.class,
                 () -> vendaService.create(vendaRequest));
 
+        verify(vendedorRepository).findById(ID_VENDEDOR);
         verify(vendaMapper, never()).toEntity(any(), any());
         verify(vendaRepository, never()).save(any());
     }
@@ -138,6 +139,9 @@ class VendaServiceTest {
         assertThrows(DataIntegrityViolationException.class,
                 () -> vendaService.create(vendaRequest));
 
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaMapper).toEntity(any(), any());
+        verify(vendaRepository).save(any());
         verify(vendaMapper, never()).toResponse(any());
     }
 
@@ -167,6 +171,11 @@ class VendaServiceTest {
 
         assertThrows(RuntimeException.class,
                 () -> vendaService.create(vendaRequest));
+
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaMapper).toEntity(vendaRequest, vendedor);
+        verify(vendaRepository).save(vendaEntity);
+        verify(vendaMapper).toResponse(vendaSalva);
     }
 
     @Test
@@ -294,6 +303,8 @@ class VendaServiceTest {
         assertThrows(RuntimeException.class,
                 () -> vendaService.getVendasPorVendedorById(ID_VENDEDOR));
 
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaRepository).findByVendedor(vendedor);
         verify(vendaMapper, never()).toResponse(any());
     }
 
@@ -400,6 +411,8 @@ class VendaServiceTest {
         assertThrows(RuntimeException.class,
                 () -> vendaService.update(ID_VENDA, vendaRequest));
 
+        verify(vendaRepository).findById(ID_VENDA);
+        verify(vendedorRepository).findById(ID_VENDEDOR);
         verify(vendaRepository, never()).save(any());
     }
 
@@ -433,6 +446,10 @@ class VendaServiceTest {
         assertThrows(DataIntegrityViolationException.class,
                 () -> vendaService.update(ID_VENDA, vendaRequest));
 
+        verify(vendaRepository).findById(ID_VENDA);
+        verify(vendedorRepository).findById(ID_VENDEDOR);
+        verify(vendaMapper).toEntity(any(), any());
+        verify(vendaRepository).save(any());
         verify(vendaMapper, never()).toResponse(any());
     }
 

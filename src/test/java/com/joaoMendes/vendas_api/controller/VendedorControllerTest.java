@@ -119,7 +119,7 @@ class VendedorControllerTest {
     }
 
     @Test
-    void dadoIdInexistente_quandoBuscarPorId_entaoRetornarVendedorNotFoundException() throws Exception {
+    void dadoIdInexistente_quandoBuscarPorId_entaoRetornarVendedorNotFoundException404() throws Exception {
 
         given(vendedorService.getById(ID_VENDEDOR_INEXISTENTE)).willThrow(new VendedorNotFoundException(ID_VENDEDOR_INEXISTENTE));
 
@@ -143,7 +143,7 @@ class VendedorControllerTest {
     }
 
     @Test
-    void dadoIdInexistente_quandoDeletarPorId_entaoRetornarVendedorNotFoundException() throws Exception{
+    void dadoIdInexistente_quandoDeletarPorId_entaoRetornarVendedorNotFoundException404() throws Exception{
 
         doThrow(new VendedorNotFoundException(ID_VENDEDOR_INEXISTENTE)).when(vendedorService).delete(ID_VENDEDOR_INEXISTENTE);
 
@@ -196,7 +196,7 @@ class VendedorControllerTest {
     }
 
     @Test
-    void dadoIdInvalido_quandoAtualizar_entaoRetornarVendedorNotFoundException() throws Exception {
+    void dadoIdInvalido_quandoAtualizar_entaoRetornarVendedorNotFoundException404() throws Exception {
         VendedorRequest request = new VendedorRequest("NOVO_NOME");
 
         given(vendedorService.update(eq(ID_VENDEDOR_INEXISTENTE), any(VendedorRequest.class)))
@@ -211,36 +211,4 @@ class VendedorControllerTest {
         verify(vendedorService, never()).update(ID_VENDEDOR_INEXISTENTE, request);
 
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

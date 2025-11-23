@@ -67,7 +67,6 @@ public class VendedorService {
         request.setNome(cleanStringForSave(request.getNome()));
         validateNomeDuplicado(request.getNome(), id);
 
-
         vendedorExistente.updateFrom(vendedorMapper.toEntity(request)) ;
 
         return vendedorMapper.toResponse(vendedorRepository.save(vendedorExistente));

@@ -36,7 +36,7 @@ class VendedorServiceTest {
     private VendedorService vendedorService;
 
     private final String vendedorNome = "vendedorNome";
-    private final String nomeNormalizado = StringUtils.normalizeString(vendedorNome);
+    private final String nomeNormalizado = StringUtils.normalizeString(StringUtils.cleanStringForSave(vendedorNome));
     private VendedorRequest requestValido;
     private Vendedor vendedorEntity;
     private Vendedor vendedorSalvo;
@@ -91,6 +91,8 @@ class VendedorServiceTest {
         assertThrows(DataIntegrityViolationException.class,
                 () -> vendedorService.create(requestValido));
 
+        verify(vendedorRepository).findByNomeIgnoreCase(nomeNormalizado);
+        verify(vendedorMapper).toEntity(any());
         verify(vendedorMapper, never()).toResponse(any());
     }
 
@@ -116,6 +118,11 @@ class VendedorServiceTest {
 
         assertThrows(RuntimeException.class,
                 () -> vendedorService.create(requestValido));
+
+        verify(vendedorRepository).findByNomeIgnoreCase(nomeNormalizado);
+        verify(vendedorRepository).save(vendedorEntity);
+        verify(vendedorMapper).toResponse(vendedorSalvo);
+        verifyNoMoreInteractions(vendedorRepository, vendedorMapper);
     }
 
     @Test
@@ -146,6 +153,9 @@ class VendedorServiceTest {
 
         assertThrows(DataIntegrityViolationException.class,
                 () -> vendedorService.delete(1L));
+
+        verify(vendedorRepository).findById(1L);
+        verify(vendedorRepository).delete(vendedorSalvo);
     }
 
     @Test
@@ -158,6 +168,9 @@ class VendedorServiceTest {
         assertNotNull(result);
         assertEquals(1L, result.id());
         assertEquals(vendedorNome, result.nome());
+
+        verify(vendedorRepository).findById(1L);
+        verify(vendedorMapper).toResponse(vendedorSalvo);
     }
 
     @Test
@@ -178,6 +191,7 @@ class VendedorServiceTest {
         assertThrows(RuntimeException.class,
                 () -> vendedorService.getById(1L));
 
+        verify(vendedorRepository).findById(any());
         verify(vendedorMapper, never()).toResponse(any());
     }
 
@@ -193,6 +207,9 @@ class VendedorServiceTest {
 
         assertEquals(1, result.size());
         assertEquals(1L, result.get(0).id());
+
+        verify(vendedorRepository).findAll();
+        verify(vendedorMapper).toResponseList(lista);
     }
 
     @Test
@@ -219,7 +236,6 @@ class VendedorServiceTest {
     void updateQuandoRequestValidoRetornaVendedorResponse() {
         Vendedor vendedorExistente = new Vendedor(1L, vendedorNome);
         Vendedor atualizado = new Vendedor(null, vendedorNome);
-        String nomeNormalizado = StringUtils.normalizeString(vendedorNome);
 
         when(vendedorRepository.findById(1L)).thenReturn(Optional.of(vendedorExistente));
         when(vendedorRepository.findByNomeIgnoreCase(nomeNormalizado)).thenReturn(Optional.empty());
@@ -283,7 +299,9 @@ class VendedorServiceTest {
         assertThrows(RuntimeException.class,
                 () -> vendedorService.update(1L, requestValido));
 
+        verify(vendedorRepository).findByNomeIgnoreCase(nomeNormalizado);
         verify(vendedorRepository, never()).save(any());
+        verify(vendedorMapper, never()).toResponse(any());
     }
 
     @Test
@@ -305,7 +323,7 @@ class VendedorServiceTest {
     }
 
     @Test
-    void updateQuandoNomeJaExisteMasEhMesmoVendedorNaoLancaExcecao() {
+    void updateQuandoNomeJaExisteMasMesmoVendedorNaoLancaExcecao() {
         Vendedor existente = new Vendedor(1L, vendedorNome);
 
         when(vendedorRepository.findById(1L)).thenReturn(Optional.of(existente));
@@ -319,6 +337,12 @@ class VendedorServiceTest {
 
         assertEquals(1L, result.id());
         assertEquals(vendedorNome, result.nome());
+
+        verify(vendedorRepository).findById(1L);
+        verify(vendedorRepository).findByNomeIgnoreCase(nomeNormalizado);
+        verify(vendedorMapper).toEntity(requestValido);
+        verify(vendedorRepository).save(existente);
+        verify(vendedorMapper).toResponse(vendedorSalvo);
     }
 
 
@@ -335,5 +359,11 @@ class VendedorServiceTest {
 
         assertThrows(DataIntegrityViolationException.class,
                 () -> vendedorService.update(1L, requestValido));
+
+        verify(vendedorRepository).findById(1L);
+        verify(vendedorRepository).findByNomeIgnoreCase(nomeNormalizado);
+        verify(vendedorMapper).toEntity(requestValido);
+        verify(vendedorRepository).save(any());
+        verify(vendedorMapper, never()).toResponse(any());
     }
 }

@@ -1,6 +1,8 @@
 package com.joaoMendes.vendas_api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.joaoMendes.vendas_api.domain.exception.VendaNotFoundException;
+import com.joaoMendes.vendas_api.domain.exception.VendedorNotFoundException;
 import com.joaoMendes.vendas_api.domain.service.VendaService;
 import com.joaoMendes.vendas_api.dto.request.MediaPorPeriodoRequest;
 import com.joaoMendes.vendas_api.dto.request.VendaRequest;
@@ -22,7 +24,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -101,6 +103,25 @@ class VendaControllerTest {
     }
 
     @Test
+    void dadoRequestInvalido_quandoCriarVenda_entaoRetornar400() throws Exception {
+
+        VendaRequest invalida = new VendaRequest(
+                null,
+                null,
+                null
+        );
+
+        mockMvc.perform(
+                        post("/vendas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(invalida))
+                )
+                .andExpect(status().isBadRequest());
+
+        verify(vendaService, never()).create(any());
+    }
+
+    @Test
     void dadoExistemVendas_quandoListar_entaoRetornarListaPreenchida() throws Exception {
         given(vendaService.getAll()).willReturn(List.of(vendaResponse));
 
@@ -142,6 +163,21 @@ class VendaControllerTest {
     }
 
     @Test
+    void dadoVendedorInexistente_quandoListarPorVendedor_entao404() throws Exception {
+        given(vendaService.getVendasPorVendedorById(ID_VENDEDOR))
+                .willThrow(new VendedorNotFoundException(ID_VENDEDOR));
+
+        mockMvc.perform(
+                        get("/vendas/vendedor/{id}", ID_VENDEDOR)
+                )
+                .andExpect(status().isNotFound());
+
+        verify(vendaService).getVendasPorVendedorById(ID_VENDEDOR);
+        verifyNoMoreInteractions(vendaService);
+    }
+
+
+    @Test
     void dadoIdValido_quandoBuscarPorId_entaoRetornarVenda() throws Exception {
         given(vendaService.getById(ID_VENDA)).willReturn(vendaResponse);
 
@@ -153,6 +189,19 @@ class VendaControllerTest {
                 .andExpect(jsonPath("$.id").value(ID_VENDA));
 
         verify(vendaService).getById(ID_VENDA);
+    }
+
+    @Test
+    void dadoIdInexistente_quandoBuscarVenda_entaoRetornar404() throws Exception {
+
+        given(vendaService.getById(ID_VENDA))
+                .willThrow(new VendaNotFoundException(ID_VENDA));
+
+        mockMvc.perform(get("/vendas/{id}", ID_VENDA))
+                .andExpect(status().isNotFound());
+
+        verify(vendaService).getById(ID_VENDA);
+        verifyNoMoreInteractions(vendaService);
     }
 
     @Test
@@ -184,6 +233,39 @@ class VendaControllerTest {
     }
 
     @Test
+    void dadoUpdateInvalido_quandoAtualizar_entao400() throws Exception {
+
+        VendaRequest invalido = new VendaRequest(null, null, null);
+
+        mockMvc.perform(
+                        put("/vendas/{id}", ID_VENDA)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(invalido))
+                )
+                .andExpect(status().isBadRequest());
+
+        verify(vendaService, never()).update(anyLong(), any());
+    }
+
+    @Test
+    void dadoIdInexistente_quandoAtualizar_entao404() throws Exception {
+
+        given(vendaService.update(eq(ID_VENDA), any()))
+                .willThrow(new VendaNotFoundException(ID_VENDA));
+
+        mockMvc.perform(
+                        put("/vendas/{id}", ID_VENDA)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(vendaRequest))
+                )
+                .andExpect(status().isNotFound());
+
+        verify(vendaService).update(eq(ID_VENDA), any());
+        verifyNoMoreInteractions(vendaService);
+    }
+
+
+    @Test
     void dadoIdValido_quandoDeletar_entao204() throws Exception {
 
         ResultActions resposta = mockMvc.perform(
@@ -193,6 +275,19 @@ class VendaControllerTest {
         resposta.andExpect(status().isNoContent());
 
         verify(vendaService).delete(ID_VENDA);
+    }
+
+    @Test
+    void dadoIdInexistente_quandoDeletar_entao404() throws Exception {
+
+        doThrow(new VendaNotFoundException(ID_VENDA))
+                .when(vendaService).delete(ID_VENDA);
+
+        mockMvc.perform(delete("/vendas/{id}", ID_VENDA))
+                .andExpect(status().isNotFound());
+
+        verify(vendaService).delete(ID_VENDA);
+        verifyNoMoreInteractions(vendaService);
     }
 
     @Test
