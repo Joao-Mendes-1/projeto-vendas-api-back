@@ -43,6 +43,7 @@ A API permite:
 
 ## Estrutura do Projeto
 
+```
 ├── data
 │   ├── vendas-api.mv.db
 │   └── vendas-api.trace.db
@@ -180,7 +181,7 @@ A API permite:
                     │       └── VendedorServiceTest.class
                     └── VendasApiApplicationTests.class
                     
-
+```
 ## Configuração do Banco de Dados
 
 O projeto utiliza **H2 Database** em memória, configurado no `application.properties`:
