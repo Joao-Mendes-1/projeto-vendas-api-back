@@ -11,8 +11,6 @@ API REST para gerenciamento de vendas e vendedores, construída com **Java 17** 
 - [Estrutura do Projeto](#estrutura-do-projeto)  
 - [Configuração do Banco de Dados](#configuração-do-banco-de-dados)  
 - [Endpoints](#endpoints)  
-- [Testes](#testes)  
-- [Como Rodar](#como-rodar)  
 
 ---
 
@@ -196,11 +194,12 @@ spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.h2.console.enabled=true
+```
 
 
 
-
-## Endpoints Principais
+## Endpoints
+```
 Vendedor
 POST /vendedores — Criar vendedor (VendedorRequest → VendedorResponse 201 Created)
 
@@ -226,3 +225,4 @@ PUT /vendas/{id} — Atualizar venda (VendaRequest → VendaResponse)
 DELETE /vendas/{id} — Remover venda (204 No Content)
 
 GET /vendas/{idVendedor}/estatistica?dataInicio=dd/MM/yyyy&dataFim=dd/MM/yyyy — Calcular média de vendas de um vendedor em um período (MediaPorPeriodoResponse)
+```
